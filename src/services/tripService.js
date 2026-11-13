@@ -234,10 +234,137 @@ export async function getSettlementDashboard(tripId) {
   };
 }
 
+export async function updateFamily(familyId, { name }) {
+  const db = getDb();
+  const now = new Date();
+  await db.update(tripFamilies).set({ name, updatedAt: now }).where(eq(tripFamilies.id, familyId));
+  return { success: true, familyId, name };
+}
+
+export async function deleteFamily(familyId) {
+  const db = getDb();
+  // Clean up settlements and splits referencing this family
+  await db.delete(settlements).where(eq(settlements.fromFamilyId, familyId));
+  await db.delete(settlements).where(eq(settlements.toFamilyId, familyId));
+  await db.delete(expenseSplits).where(eq(expenseSplits.familyId, familyId));
+  await db.delete(expenses).where(eq(expenses.payerFamilyId, familyId));
+  await db.delete(tripMembers).where(eq(tripMembers.familyId, familyId));
+  await db.delete(tripFamilies).where(eq(tripFamilies.id, familyId));
+  return { success: true, familyId };
+}
+
+export async function updateMember(memberId, { name, memberType, defaultWeight }) {
+  const db = getDb();
+  const now = new Date();
+  const updates = { updatedAt: now };
+  if (name !== undefined) updates.name = name;
+  if (memberType !== undefined) updates.memberType = memberType;
+  if (defaultWeight !== undefined) updates.defaultWeight = defaultWeight;
+  await db.update(tripMembers).set(updates).where(eq(tripMembers.id, memberId));
+  return { success: true, memberId };
+}
+
+export async function deleteMember(memberId) {
+  const db = getDb();
+  await db.delete(expenseSplits).where(eq(expenseSplits.memberId, memberId));
+  await db.delete(tripMembers).where(eq(tripMembers.id, memberId));
+  return { success: true, memberId };
+}
+
+export async function updateFriend({ familyId, memberId, name }) {
+  const db = getDb();
+  const now = new Date();
+  if (familyId) {
+    await db.update(tripFamilies).set({ name, updatedAt: now }).where(eq(tripFamilies.id, familyId));
+  }
+  if (memberId) {
+    await db.update(tripMembers).set({ name, updatedAt: now }).where(eq(tripMembers.id, memberId));
+  }
+  return { success: true, familyId, memberId, name };
+}
+
+export async function deleteFriend(familyId) {
+  return await deleteFamily(familyId);
+}
+
+export async function updateTrip(tripId, { name, description, tripType }) {
+  const db = getDb();
+  const now = new Date();
+  const updates = { updatedAt: now };
+  if (name !== undefined) updates.name = name;
+  if (description !== undefined) updates.description = description;
+  if (tripType !== undefined) updates.tripType = tripType;
+  await db.update(trips).set(updates).where(eq(trips.id, tripId));
+  return { success: true, tripId };
+}
+
 export async function deleteTrip(tripId) {
   const db = getDb();
+  // Cascaded cleanup of trip elements
+  await db.delete(settlements).where(eq(settlements.tripId, tripId));
+  const tripExp = await db.select({ id: expenses.id }).from(expenses).where(eq(expenses.tripId, tripId));
+  for (const exp of tripExp) {
+    await db.delete(expenseSplits).where(eq(expenseSplits.expenseId, exp.id));
+  }
+  await db.delete(expenses).where(eq(expenses.tripId, tripId));
+  await db.delete(tripMembers).where(eq(tripMembers.tripId, tripId));
+  await db.delete(tripFamilies).where(eq(tripFamilies.tripId, tripId));
   await db.delete(trips).where(eq(trips.id, tripId));
   return { success: true, tripId };
+}
+
+export async function getExpenseById(expenseId) {
+  const db = getDb();
+  const exp = await db.select().from(expenses).where(eq(expenses.id, expenseId));
+  if (!exp || exp.length === 0) return null;
+  const splits = await db.select().from(expenseSplits).where(eq(expenseSplits.expenseId, expenseId));
+  return { ...exp[0], splits };
+}
+
+export async function updateExpense({
+  expenseId,
+  title,
+  amountPaise,
+  payerFamilyId,
+  payerMemberId = null,
+  splitType = 'weighted_members',
+  splits = [],
+}) {
+  const db = getDb();
+  const now = new Date();
+
+  await db.update(expenses).set({
+    title,
+    amountPaise,
+    payerFamilyId,
+    payerMemberId,
+    splitType,
+    updatedAt: now,
+  }).where(eq(expenses.id, expenseId));
+
+  await db.delete(expenseSplits).where(eq(expenseSplits.expenseId, expenseId));
+  if (splits.length > 0) {
+    for (const split of splits) {
+      await db.insert(expenseSplits).values({
+        id: uuidv4(),
+        expenseId,
+        familyId: split.familyId,
+        memberId: split.memberId || null,
+        sharePaise: split.sharePaise,
+        weightUsed: split.weightUsed || 100,
+        createdAt: now,
+      });
+    }
+  }
+
+  return { id: expenseId, title, amountPaise };
+}
+
+export async function deleteExpense(expenseId) {
+  const db = getDb();
+  await db.delete(expenseSplits).where(eq(expenseSplits.expenseId, expenseId));
+  await db.delete(expenses).where(eq(expenses.id, expenseId));
+  return { success: true, expenseId };
 }
 
 export async function archiveTrip(tripId, isArchived = true) {

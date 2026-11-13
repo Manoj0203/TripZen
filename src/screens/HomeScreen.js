@@ -152,7 +152,7 @@ export function HomeScreen({ navigation }) {
             variant="outline"
             size="sm"
             style={styles.importHeaderBtn}
-            onPress={() => setImportModalVisible(true)}
+            onPress={() => navigation.navigate('ImportTrip')}
           />
           <Button
             title="+ New Trip"
@@ -178,7 +178,7 @@ export function HomeScreen({ navigation }) {
               title="Import Trip"
               variant="outline"
               style={styles.emptyButton}
-              onPress={() => setImportModalVisible(true)}
+              onPress={() => navigation.navigate('ImportTrip')}
             />
           </View>
         </View>

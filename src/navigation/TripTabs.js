@@ -1,10 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { ExpensesScreen } from '../screens/ExpensesScreen';
 import { ParticipantsScreen } from '../screens/ParticipantsScreen';
 import { SettlementsScreen } from '../screens/SettlementsScreen';
 import { colors } from '../theme/colors';
+import { CreditCardIcon, FamilyIcon, UsersIcon, ScaleIcon, SyncIcon } from '../components/Icons';
 
 const Tab = createBottomTabNavigator();
 
@@ -32,7 +33,8 @@ export function TripTabs({ route, navigation }) {
             style={styles.backupHeaderBtn}
             onPress={() => navigation.navigate('SyncBackup', { tripId, tripName })}
           >
-            <Text style={styles.backupHeaderText}>⚡ Sync / QR</Text>
+            <SyncIcon size={14} color={colors.secondary} style={{ marginRight: 5 }} />
+            <Text style={styles.backupHeaderText}>Sync / QR</Text>
           </TouchableOpacity>
         ),
         tabBarActiveTintColor: colors.primaryDark,
@@ -57,7 +59,7 @@ export function TripTabs({ route, navigation }) {
         options={{
           title: tripName || 'Expenses',
           tabBarLabel: 'Expenses',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18 }}>💳</Text>,
+          tabBarIcon: ({ color }) => <CreditCardIcon size={20} color={color} />,
         }}
       />
 
@@ -69,7 +71,7 @@ export function TripTabs({ route, navigation }) {
           title: isFriends ? 'Friends' : 'Families',
           tabBarLabel: isFriends ? 'Friends' : 'Families',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 18 }}>{isFriends ? '🧑‍🤝‍🧑' : '👨‍👩‍👧‍👦'}</Text>
+            isFriends ? <UsersIcon size={20} color={color} /> : <FamilyIcon size={20} color={color} />
           ),
         }}
       />
@@ -81,7 +83,7 @@ export function TripTabs({ route, navigation }) {
         options={{
           title: 'Settlement Dashboard',
           tabBarLabel: 'Settlements',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18 }}>⚖️</Text>,
+          tabBarIcon: ({ color }) => <ScaleIcon size={20} color={color} />,
         }}
       />
     </Tab.Navigator>
@@ -92,9 +94,11 @@ const styles = StyleSheet.create({
   backupHeaderBtn: {
     marginRight: 16,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 8,
     backgroundColor: '#F1F5F9',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backupHeaderText: {
     fontSize: 12,

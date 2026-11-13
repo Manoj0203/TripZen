@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TextInput } from 'react-native';
+import { Text, StyleSheet, ScrollView, Alert, TextInput } from 'react-native';
 import { colors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
