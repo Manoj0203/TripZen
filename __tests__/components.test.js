@@ -4,6 +4,7 @@ import { Button } from '../src/components/Button';
 import { Card } from '../src/components/Card';
 import { Input } from '../src/components/Input';
 import { SplitPreview } from '../src/components/SplitPreview';
+import { Icon } from '../src/components/Icon';
 
 describe('Step 4 UI Components', () => {
   test('Button renders with title and variants', () => {
@@ -64,6 +65,24 @@ describe('Step 4 UI Components', () => {
       tree = ReactTestRenderer.create(
         <SplitPreview splits={splits} familyNames={familyNames} isFriendsTrip={true} />
       );
+    });
+    expect(tree.toJSON()).toBeTruthy();
+  });
+
+  test('Icon renders SVG icons properly', () => {
+    let tree;
+    ReactTestRenderer.act(() => {
+      tree = ReactTestRenderer.create(<Icon name="card" size={24} color="#10B981" />);
+    });
+    expect(tree.toJSON()).toBeTruthy();
+
+    ReactTestRenderer.act(() => {
+      tree = ReactTestRenderer.create(<Icon name="users" size={20} />);
+    });
+    expect(tree.toJSON()).toBeTruthy();
+
+    ReactTestRenderer.act(() => {
+      tree = ReactTestRenderer.create(<Icon name="trash" size={16} />);
     });
     expect(tree.toJSON()).toBeTruthy();
   });

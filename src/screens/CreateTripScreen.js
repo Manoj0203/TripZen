@@ -5,6 +5,7 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { createTrip } from '../services/tripService';
+import { FamilyIcon, UsersIcon } from '../components/Icons';
 
 export function CreateTripScreen({ navigation }) {
   const [name, setName] = useState('');
