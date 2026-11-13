@@ -198,6 +198,12 @@ export async function getSettlements(tripId) {
   return await db.select().from(settlements).where(eq(settlements.tripId, tripId)).orderBy(desc(settlements.settledAt));
 }
 
+export async function deleteSettlement(settlementId) {
+  const db = getDb();
+  await db.delete(settlements).where(eq(settlements.id, settlementId));
+  return { success: true, settlementId };
+}
+
 /**
  * Calculates net balances and simplified settlements for a trip,
  * taking into account both expenses and already recorded settlements.

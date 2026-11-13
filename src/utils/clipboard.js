@@ -1,24 +1,34 @@
-import Clipboard from '@react-native-clipboard/clipboard';
-import { Clipboard as RNClipboard } from 'react-native';
+let clipboardModule = null;
 
-/**
- * Robust clipboard helper supporting both @react-native-clipboard/clipboard
- * and fallback to react-native's built-in Clipboard.
- */
-export async function copyToClipboard(text) {
-  if (!text) return false;
+function getClipboard() {
+  if (clipboardModule) return clipboardModule;
   try {
-    if (Clipboard && typeof Clipboard.setString === 'function') {
-      Clipboard.setString(text);
-      return true;
-    }
+    const mod = require('@react-native-clipboard/clipboard');
+    clipboardModule = mod?.default || mod;
+    return clipboardModule;
   } catch (e) {
     // try fallback
   }
 
   try {
-    if (RNClipboard && typeof RNClipboard.setString === 'function') {
-      RNClipboard.setString(text);
+    const RN = require('react-native');
+    clipboardModule = RN.Clipboard;
+    return clipboardModule;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Robust clipboard helper supporting @react-native-clipboard/clipboard
+ * with fallback to react-native's built-in Clipboard if needed.
+ */
+export async function copyToClipboard(text) {
+  if (!text) return false;
+  try {
+    const clip = getClipboard();
+    if (clip && typeof clip.setString === 'function') {
+      clip.setString(text);
       return true;
     }
   } catch (e) {
@@ -29,16 +39,9 @@ export async function copyToClipboard(text) {
 
 export async function getFromClipboard() {
   try {
-    if (Clipboard && typeof Clipboard.getString === 'function') {
-      return await Clipboard.getString();
-    }
-  } catch (e) {
-    // try fallback
-  }
-
-  try {
-    if (RNClipboard && typeof RNClipboard.getString === 'function') {
-      return await RNClipboard.getString();
+    const clip = getClipboard();
+    if (clip && typeof clip.getString === 'function') {
+      return await clip.getString();
     }
   } catch (e) {
     console.warn('Failed to read from clipboard:', e);

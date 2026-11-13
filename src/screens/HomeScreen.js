@@ -22,6 +22,7 @@ import {
   TripIcon,
   DownloadIcon,
 } from '../components/Icons';
+import { getFromClipboard } from '../utils/clipboard';
 
 export function HomeScreen({ navigation }) {
   const [trips, setTrips] = useState([]);
@@ -118,6 +119,19 @@ export function HomeScreen({ navigation }) {
         },
       ]
     );
+  };
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      const content = await getFromClipboard();
+      if (content) {
+        setImportPayload(content);
+      } else {
+        Alert.alert('Clipboard Empty', 'No text found in clipboard.');
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleImportTrip = async () => {
@@ -329,12 +343,23 @@ export function HomeScreen({ navigation }) {
               Paste the encrypted trip backup string and enter the password used to protect it.
             </Text>
 
+            <View style={styles.inputHeaderRow}>
+              <Text style={styles.inputLabel}>Encrypted Backup String</Text>
+              <TouchableOpacity
+                style={styles.pasteChip}
+                onPress={handlePasteFromClipboard}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
+              </TouchableOpacity>
+            </View>
+
             <Input
-              label="Encrypted Backup String"
               placeholder="Paste encrypted backup string here..."
               value={importPayload}
               onChangeText={setImportPayload}
               multiline
+              numberOfLines={4}
             />
 
             <Input
@@ -553,5 +578,27 @@ const styles = StyleSheet.create({
   },
   modalBtn: {
     minWidth: 100,
+  },
+  inputHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  pasteChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: '#F1F5F9',
+  },
+  pasteChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.secondary,
   },
 });

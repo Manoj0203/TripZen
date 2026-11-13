@@ -201,3 +201,13 @@ export function ReceiptIcon({ size = 48, color = '#94A3B8', strokeWidth = 1.5, s
     </Svg>
   );
 }
+
+export function DownloadIcon({ size = 18, color = '#0F172A', strokeWidth = 2, style }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <Polyline points="7 10 12 15 17 10" />
+      <Line x1="12" y1="15" x2="12" y2="3" />
+    </Svg>
+  );
+}

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { colors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { getSettlementDashboard, recordSettlement, getParticipants } from '../services/tripService';
+import { getSettlementDashboard, recordSettlement, getParticipants, deleteSettlement } from '../services/tripService';
 import { formatPaiseToRupees } from '../logic/currencyFormatter';
 import { CheckCircleIcon, ArrowRightSimple } from '../components/Icons';
 
@@ -101,6 +101,29 @@ export function SettlementsScreen({ route, navigation }) {
 
   const { netBalances, suggestedSettlements, recordedSettlements } = dashboard;
   const participantIds = Object.keys(netBalances);
+
+  const handleDeleteSettlement = (rec) => {
+    Alert.alert(
+      'Delete Payment Record',
+      `Undo and remove the payment of ${formatPaiseToRupees(rec.amountPaise)} from ${getName(rec.fromFamilyId)} to ${getName(rec.toFamilyId)}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteSettlement(rec.id);
+              await loadData();
+            } catch (e) {
+              console.error(e);
+              Alert.alert('Error', 'Failed to delete payment record.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ScrollView
@@ -208,7 +231,7 @@ export function SettlementsScreen({ route, navigation }) {
           {recordedSettlements.map(rec => (
             <Card key={rec.id} style={styles.historyCard}>
               <View style={styles.historyRow}>
-                <View>
+                <View style={styles.historyInfo}>
                   <Text style={styles.historyTitle}>
                     {getName(rec.fromFamilyId)} paid {getName(rec.toFamilyId)}
                   </Text>
@@ -217,9 +240,18 @@ export function SettlementsScreen({ route, navigation }) {
                     {new Date(rec.settledAt).toLocaleDateString()}
                   </Text>
                 </View>
-                <Text style={styles.historyAmount}>
-                  {formatPaiseToRupees(rec.amountPaise)}
-                </Text>
+                <View style={styles.historyActionRight}>
+                  <Text style={styles.historyAmount}>
+                    {formatPaiseToRupees(rec.amountPaise)}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.deletePaymentBtn}
+                    onPress={() => handleDeleteSettlement(rec)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.deletePaymentText}>🗑️</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </Card>
           ))}
@@ -371,6 +403,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  historyInfo: {
+    flex: 1,
+    marginRight: 10,
+  },
+  historyActionRight: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  deletePaymentBtn: {
+    padding: 2,
+  },
+  deletePaymentText: {
+    fontSize: 12,
   },
   historyTitle: {
     fontSize: 13,
