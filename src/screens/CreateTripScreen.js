@@ -70,7 +70,9 @@ export function CreateTripScreen({ navigation }) {
       >
         <Card style={[styles.typeCard, tripType === 'families' && styles.typeCardSelected]}>
           <View style={styles.typeHeader}>
-            <Text style={styles.typeIcon}>👨‍👩‍👧‍👦</Text>
+            <View style={styles.typeIconContainer}>
+              <FamilyIcon size={24} color={tripType === 'families' ? colors.primaryDark : colors.textMuted} />
+            </View>
             <View style={styles.typeInfo}>
               <Text style={styles.typeTitle}>Family Trip</Text>
               <Text style={styles.typeDescription}>
@@ -89,7 +91,9 @@ export function CreateTripScreen({ navigation }) {
       >
         <Card style={[styles.typeCard, tripType === 'friends' && styles.typeCardSelected]}>
           <View style={styles.typeHeader}>
-            <Text style={styles.typeIcon}>🧑‍🤝‍🧑</Text>
+            <View style={styles.typeIconContainer}>
+              <UsersIcon size={24} color={tripType === 'friends' ? colors.primaryDark : colors.textMuted} />
+            </View>
             <View style={styles.typeInfo}>
               <Text style={styles.typeTitle}>Group of Friends</Text>
               <Text style={styles.typeDescription}>
@@ -152,8 +156,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  typeIcon: {
-    fontSize: 28,
+  typeIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
   typeInfo: {
