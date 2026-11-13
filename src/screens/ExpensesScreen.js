@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { getExpenses, getParticipants, deleteExpense } from '../services/tripService';
 import { formatPaiseToRupees } from '../logic/currencyFormatter';
+import { PlusIcon, EditIcon, TrashIcon, ReceiptIcon } from '../components/Icons';
 
 export function ExpensesScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
@@ -52,6 +53,15 @@ export function ExpensesScreen({ route, navigation }) {
 
   const totalPaise = expensesList.reduce((sum, item) => sum + item.amountPaise, 0);
 
+  const handleEditExpense = (item) => {
+    navigation.navigate('AddExpense', {
+      tripId,
+      tripType,
+      participants: JSON.parse(JSON.stringify(participants)),
+      expense: item,
+    });
+  };
+
   const handleDeleteExpense = (item) => {
     Alert.alert(
       'Delete Expense',
@@ -79,7 +89,7 @@ export function ExpensesScreen({ route, navigation }) {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onLongPress={() => handleDeleteExpense(item)}
+        onPress={() => handleEditExpense(item)}
       >
         <Card style={styles.expenseCard}>
           <View style={styles.expenseHeader}>
@@ -90,17 +100,29 @@ export function ExpensesScreen({ route, navigation }) {
                 {new Date(item.expenseDate).toLocaleDateString()}
               </Text>
             </View>
+
             <View style={styles.amountActionCol}>
               <Text style={styles.expenseAmount}>
                 {formatPaiseToRupees(item.amountPaise)}
               </Text>
-              <TouchableOpacity
-                style={styles.deleteExpenseBtn}
-                onPress={() => handleDeleteExpense(item)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Text style={styles.deleteExpenseText}>🗑️</Text>
-              </TouchableOpacity>
+
+              <View style={styles.actionButtonGroup}>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={() => handleEditExpense(item)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <EditIcon size={15} color={colors.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={() => handleDeleteExpense(item)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <TrashIcon size={15} color={colors.danger} />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Card>
@@ -119,7 +141,8 @@ export function ExpensesScreen({ route, navigation }) {
           </Text>
         </View>
         <Button
-          title="+ Add Expense"
+          title="Add Expense"
+          icon={<PlusIcon size={14} color="#FFFFFF" />}
           size="sm"
           onPress={() =>
             navigation.navigate('AddExpense', {
@@ -139,13 +162,14 @@ export function ExpensesScreen({ route, navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <ReceiptIcon size={52} color="#CBD5E1" style={styles.emptyIcon} />
             <Text style={styles.emptyTitle}>No Expenses Logged</Text>
             <Text style={styles.emptySubtitle}>
               {participants.length === 0
                 ? isFriends
                   ? 'Add friends first to start logging expenses!'
                   : 'Add families first to start logging expenses!'
-                : 'Click "+ Add Expense" above to record the first bill.'}
+                : 'Tap "Add Expense" above to record the first bill.'}
             </Text>
           </View>
         }
@@ -211,25 +235,31 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  amountActionCol: {
+    alignItems: 'flex-end',
+  },
   expenseAmount: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
+    marginBottom: 4,
   },
-  amountActionCol: {
-    alignItems: 'flex-end',
-    gap: 6,
+  actionButtonGroup: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  deleteExpenseBtn: {
-    padding: 2,
-  },
-  deleteExpenseText: {
-    fontSize: 13,
+  actionBtn: {
+    padding: 4,
+    borderRadius: 6,
+    backgroundColor: '#F8FAFC',
   },
   emptyContainer: {
     alignItems: 'center',
     padding: 32,
     marginTop: 40,
+  },
+  emptyIcon: {
+    marginBottom: 12,
   },
   emptyTitle: {
     fontSize: 17,
