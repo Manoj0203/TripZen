@@ -13,11 +13,28 @@ import { colors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { getTrips, deleteTrip, importTripEncrypted } from '../services/tripService';
+import { getTrips, deleteTrip, updateTrip, importTripEncrypted } from '../services/tripService';
+import {
+  EditIcon,
+  TrashIcon,
+  PlusIcon,
+  ArrowRightIcon,
+  TripIcon,
+  DownloadIcon,
+} from '../components/Icons';
 
 export function HomeScreen({ navigation }) {
   const [trips, setTrips] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Edit Trip Modal State
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingTripId, setEditingTripId] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // Import Modal State
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importPayload, setImportPayload] = useState('');
   const [importPassword, setImportPassword] = useState('');
@@ -50,10 +67,40 @@ export function HomeScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  const handleOpenEdit = (item) => {
+    setEditingTripId(item.id);
+    setEditName(item.name || '');
+    setEditDescription(item.description || '');
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editName.trim()) {
+      Alert.alert('Required', 'Please enter a trip name.');
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      await updateTrip(editingTripId, {
+        name: editName.trim(),
+        description: editDescription.trim(),
+      });
+      setEditModalVisible(false);
+      setEditingTripId(null);
+      await loadTrips();
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'Failed to update trip.');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const handleDeleteTrip = (item) => {
     Alert.alert(
       'Delete Trip',
-      `Are you sure you want to delete "${item.name}" and all its expenses? This action cannot be undone.`,
+      `Are you sure you want to delete "${item.name}"? All associated expenses, splits, and participants will be deleted. This cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -90,7 +137,7 @@ export function HomeScreen({ navigation }) {
       setImportPayload('');
       setImportPassword('');
       await loadTrips();
-      Alert.alert('Success', `Trip "${imported.name}" imported successfully!`);
+      Alert.alert('Success', `Trip "${imported?.name || 'Trip'}" imported successfully!`);
     } catch (e) {
       console.error(e);
       Alert.alert('Import Failed', 'Invalid backup string or incorrect password.');
@@ -104,34 +151,62 @@ export function HomeScreen({ navigation }) {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('TripDetails', { tripId: item.id, tripName: item.name, tripType: item.tripType })}
-        onLongPress={() => handleDeleteTrip(item)}
+        onPress={() =>
+          navigation.navigate('TripDetails', {
+            tripId: item.id,
+            tripName: item.name,
+            tripType: item.tripType,
+          })
+        }
       >
         <Card style={styles.tripCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.tripName}>{item.name}</Text>
             <View style={[styles.badge, isFriends ? styles.badgeFriends : styles.badgeFamily]}>
-              <Text style={[styles.badgeText, isFriends ? styles.badgeTextFriends : styles.badgeTextFamily]}>
+              <Text
+                style={[
+                  styles.badgeText,
+                  isFriends ? styles.badgeTextFriends : styles.badgeTextFamily,
+                ]}
+              >
                 {isFriends ? 'Friends Trip' : 'Family Trip'}
               </Text>
             </View>
           </View>
+
           {item.description ? (
             <Text style={styles.description}>{item.description}</Text>
           ) : null}
+
           <View style={styles.cardFooter}>
             <Text style={styles.footerDate}>
               Created {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently'}
             </Text>
-            <View style={styles.footerActions}>
+
+            <View style={styles.cardActionRow}>
+              {/* Edit Trip Button */}
+              <TouchableOpacity
+                onPress={() => handleOpenEdit(item)}
+                style={styles.actionIconBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <EditIcon size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+
+              {/* Delete Trip Button */}
               <TouchableOpacity
                 onPress={() => handleDeleteTrip(item)}
-                style={styles.deleteButton}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={styles.actionIconBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={styles.deleteButtonText}>🗑️</Text>
+                <TrashIcon size={16} color={colors.danger} />
               </TouchableOpacity>
-              <Text style={styles.arrowText}>View Trip →</Text>
+
+              {/* View Arrow */}
+              <View style={styles.viewRow}>
+                <Text style={styles.arrowText}>View</Text>
+                <ArrowRightIcon size={14} color={colors.primary} style={{ marginLeft: 2 }} />
+              </View>
             </View>
           </View>
         </Card>
@@ -152,10 +227,11 @@ export function HomeScreen({ navigation }) {
             variant="outline"
             size="sm"
             style={styles.importHeaderBtn}
-            onPress={() => navigation.navigate('ImportTrip')}
+            onPress={() => setImportModalVisible(true)}
           />
           <Button
-            title="+ New Trip"
+            title="New Trip"
+            icon={<PlusIcon size={14} color="#FFFFFF" />}
             size="sm"
             onPress={() => navigation.navigate('CreateTrip')}
           />
@@ -164,13 +240,15 @@ export function HomeScreen({ navigation }) {
 
       {trips.length === 0 ? (
         <View style={styles.emptyContainer}>
+          <TripIcon size={56} color="#CBD5E1" style={styles.emptyIcon} />
           <Text style={styles.emptyTitle}>No Trips Yet</Text>
           <Text style={styles.emptySubtitle}>
-            Create your first trip with families or friends, or import a shared trip!
+            Create your first trip with families or friends, or import an encrypted backup.
           </Text>
           <View style={styles.emptyButtonRow}>
             <Button
               title="Create a Trip"
+              icon={<PlusIcon size={14} color="#FFFFFF" />}
               style={styles.emptyButton}
               onPress={() => navigation.navigate('CreateTrip')}
             />
@@ -178,7 +256,7 @@ export function HomeScreen({ navigation }) {
               title="Import Trip"
               variant="outline"
               style={styles.emptyButton}
-              onPress={() => navigation.navigate('ImportTrip')}
+              onPress={() => setImportModalVisible(true)}
             />
           </View>
         </View>
@@ -191,6 +269,51 @@ export function HomeScreen({ navigation }) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
       )}
+
+      {/* Edit Trip Modal */}
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Trip</Text>
+            <Text style={styles.modalSubtitle}>Update trip details</Text>
+
+            <Input
+              label="Trip Name"
+              placeholder="e.g. Goa Vacation 2026"
+              value={editName}
+              onChangeText={setEditName}
+            />
+
+            <Input
+              label="Description (Optional)"
+              placeholder="Notes, destination, hotel info..."
+              value={editDescription}
+              onChangeText={setEditDescription}
+              multiline
+            />
+
+            <View style={styles.modalButtonRow}>
+              <Button
+                title="Cancel"
+                variant="outline"
+                style={styles.modalBtn}
+                onPress={() => setEditModalVisible(false)}
+              />
+              <Button
+                title="Save Changes"
+                loading={savingEdit}
+                style={styles.modalBtn}
+                onPress={handleSaveEdit}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Import Trip Modal */}
       <Modal
@@ -273,7 +396,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   importHeaderBtn: {
-    marginRight: 6,
+    marginRight: 4,
   },
   title: {
     fontSize: 24,
@@ -290,6 +413,7 @@ const styles = StyleSheet.create({
   },
   tripCard: {
     padding: 16,
+    marginBottom: 12,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -343,17 +467,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textMuted,
   },
-  footerActions: {
+  cardActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  deleteButton: {
-    paddingHorizontal: 4,
-    paddingVertical: 2,
+  actionIconBtn: {
+    padding: 5,
+    borderRadius: 6,
+    backgroundColor: '#F8FAFC',
   },
-  deleteButtonText: {
-    fontSize: 14,
+  viewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 4,
   },
   arrowText: {
     fontSize: 13,
@@ -365,6 +492,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
+  },
+  emptyIcon: {
+    marginBottom: 12,
   },
   emptyTitle: {
     fontSize: 20,

@@ -1,10 +1,37 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Modal, Alert, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Modal,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import { colors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { getParticipants, addFamily, addMember, addFriend } from '../services/tripService';
+import {
+  getParticipants,
+  addFamily,
+  updateFamily,
+  deleteFamily,
+  addMember,
+  updateMember,
+  deleteMember,
+  addFriend,
+  updateFriend,
+  deleteFriend,
+} from '../services/tripService';
+import {
+  UserIcon,
+  FamilyIcon,
+  UsersIcon,
+  PlusIcon,
+  EditIcon,
+  TrashIcon,
+} from '../components/Icons';
 
 export function ParticipantsScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
@@ -12,9 +39,14 @@ export function ParticipantsScreen({ route, navigation }) {
 
   const [participants, setParticipants] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalMode, setModalMode] = useState('add_family');
+  // 'add_family' | 'edit_family' | 'add_member' | 'edit_member' | 'add_friend' | 'edit_friend'
+
   const [nameInput, setNameInput] = useState('');
   const [memberType, setMemberType] = useState('adult'); // for family members
-  const [activeFamilyId, setActiveFamilyId] = useState(null); // when adding member to a family
+  const [activeFamilyId, setActiveFamilyId] = useState(null); // when adding/editing member
+  const [editingTargetId, setEditingTargetId] = useState(null); // familyId or memberId being edited
+  const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -37,18 +69,140 @@ export function ParticipantsScreen({ route, navigation }) {
     };
   }, [navigation, loadData]);
 
-  const handleAddUnit = async () => {
+  // Modal Open Handlers
+  const openAddFamily = () => {
+    setModalMode(isFriends ? 'add_friend' : 'add_family');
+    setActiveFamilyId(null);
+    setEditingTargetId(null);
+    setNameInput('');
+    setModalVisible(true);
+  };
+
+  const openEditFamily = (family) => {
+    setModalMode('edit_family');
+    setEditingTargetId(family.id);
+    setNameInput(family.name || '');
+    setModalVisible(true);
+  };
+
+  const openAddMember = (familyId) => {
+    setModalMode('add_member');
+    setActiveFamilyId(familyId);
+    setEditingTargetId(null);
+    setNameInput('');
+    setMemberType('adult');
+    setModalVisible(true);
+  };
+
+  const openEditMember = (familyId, member) => {
+    setModalMode('edit_member');
+    setActiveFamilyId(familyId);
+    setEditingTargetId(member.id);
+    setNameInput(member.name || '');
+    setMemberType(member.memberType || 'adult');
+    setModalVisible(true);
+  };
+
+  const openEditFriend = (friend) => {
+    setModalMode('edit_friend');
+    setEditingTargetId(friend.id); // familyId
+    setActiveFamilyId(friend.members?.[0]?.id || null); // memberId
+    setNameInput(friend.name || '');
+    setModalVisible(true);
+  };
+
+  // Delete Handlers
+  const handleDeleteFamily = (family) => {
+    Alert.alert(
+      'Delete Family',
+      `Are you sure you want to delete "${family.name}" and all its members? All associated expenses and splits will be deleted.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteFamily(family.id);
+              await loadData();
+            } catch (e) {
+              console.error(e);
+              Alert.alert('Error', 'Failed to delete family.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteMember = (member) => {
+    Alert.alert(
+      'Delete Member',
+      `Are you sure you want to remove "${member.name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMember(member.id);
+              await loadData();
+            } catch (e) {
+              console.error(e);
+              Alert.alert('Error', 'Failed to remove member.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteFriend = (friend) => {
+    Alert.alert(
+      'Delete Friend',
+      `Are you sure you want to remove "${friend.name}"? Associated expenses and splits will be deleted.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteFriend(friend.id);
+              await loadData();
+            } catch (e) {
+              console.error(e);
+              Alert.alert('Error', 'Failed to delete friend.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Save Modal Handler (Handles Add & Edit)
+  const handleSaveModal = async () => {
     if (!nameInput.trim()) {
       Alert.alert('Required', 'Please enter a name.');
       return;
     }
 
+    setSaving(true);
     try {
-      if (isFriends) {
-        // Add single friend
+      if (modalMode === 'add_friend') {
         await addFriend({ tripId, name: nameInput.trim() });
-      } else if (activeFamilyId) {
-        // Add member to existing family
+      } else if (modalMode === 'edit_friend') {
+        await updateFriend({
+          familyId: editingTargetId,
+          memberId: activeFamilyId,
+          name: nameInput.trim(),
+        });
+      } else if (modalMode === 'add_family') {
+        await addFamily({ tripId, name: nameInput.trim() });
+      } else if (modalMode === 'edit_family') {
+        await updateFamily(editingTargetId, { name: nameInput.trim() });
+      } else if (modalMode === 'add_member') {
         const weight = memberType === 'child' ? 50 : 100;
         await addMember({
           tripId,
@@ -57,40 +211,54 @@ export function ParticipantsScreen({ route, navigation }) {
           memberType,
           defaultWeight: weight,
         });
-      } else {
-        // Add new family
-        await addFamily({ tripId, name: nameInput.trim() });
+      } else if (modalMode === 'edit_member') {
+        const weight = memberType === 'child' ? 50 : 100;
+        await updateMember(editingTargetId, {
+          name: nameInput.trim(),
+          memberType,
+          defaultWeight: weight,
+        });
       }
 
       setNameInput('');
       setActiveFamilyId(null);
+      setEditingTargetId(null);
       setModalVisible(false);
       await loadData();
     } catch (e) {
       console.error(e);
       Alert.alert('Error', 'Could not save participant.');
+    } finally {
+      setSaving(false);
     }
-  };
-
-  const openAddFamily = () => {
-    setActiveFamilyId(null);
-    setNameInput('');
-    setModalVisible(true);
-  };
-
-  const openAddMember = (familyId) => {
-    setActiveFamilyId(familyId);
-    setNameInput('');
-    setMemberType('adult');
-    setModalVisible(true);
   };
 
   const renderFriendItem = ({ item }) => {
     return (
       <Card style={styles.friendCard}>
         <View style={styles.friendRow}>
-          <Text style={styles.friendAvatar}>🧑</Text>
+          <View style={styles.avatarCircle}>
+            <UserIcon size={18} color={colors.secondary} />
+          </View>
           <Text style={styles.friendName}>{item.name}</Text>
+
+          <View style={styles.actionIconGroup}>
+            <TouchableOpacity
+              onPress={() => openEditFriend(item)}
+              style={styles.smallActionBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <EditIcon size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleDeleteFriend(item)}
+              style={styles.smallActionBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <TrashIcon size={16} color={colors.danger} />
+            </TouchableOpacity>
+          </View>
         </View>
       </Card>
     );
@@ -101,11 +269,31 @@ export function ParticipantsScreen({ route, navigation }) {
       <Card style={styles.familyCard}>
         <View style={styles.familyHeader}>
           <View style={styles.familyTitleContainer}>
-            <Text style={styles.familyIcon}>🏠</Text>
+            <View style={styles.familyIconCircle}>
+              <FamilyIcon size={18} color={colors.primaryDark} />
+            </View>
             <Text style={styles.familyName}>{item.name}</Text>
+
+            <TouchableOpacity
+              onPress={() => openEditFamily(item)}
+              style={styles.familyActionBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <EditIcon size={15} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleDeleteFamily(item)}
+              style={styles.familyActionBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <TrashIcon size={15} color={colors.danger} />
+            </TouchableOpacity>
           </View>
+
           <Button
-            title="+ Add Member"
+            title="Member"
+            icon={<PlusIcon size={12} color={colors.primary} />}
             size="sm"
             variant="outline"
             onPress={() => openAddMember(item.id)}
@@ -118,21 +306,43 @@ export function ParticipantsScreen({ route, navigation }) {
           <View style={styles.membersList}>
             {item.members.map(member => (
               <View key={member.id} style={styles.memberRow}>
-                <Text style={styles.memberName}>{member.name}</Text>
-                <View
-                  style={[
-                    styles.memberBadge,
-                    member.memberType === 'child' ? styles.childBadge : styles.adultBadge,
-                  ]}
-                >
-                  <Text
+                <View style={styles.memberInfo}>
+                  <Text style={styles.memberName}>{member.name}</Text>
+                  <View
                     style={[
-                      styles.memberBadgeText,
-                      member.memberType === 'child' ? styles.childBadgeText : styles.adultBadgeText,
+                      styles.memberBadge,
+                      member.memberType === 'child' ? styles.childBadge : styles.adultBadge,
                     ]}
                   >
-                    {member.memberType === 'child' ? 'Child (0.5x)' : 'Adult (1.0x)'}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.memberBadgeText,
+                        member.memberType === 'child'
+                          ? styles.childBadgeText
+                          : styles.adultBadgeText,
+                      ]}
+                    >
+                      {member.memberType === 'child' ? 'Child (0.5x)' : 'Adult (1.0x)'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.memberActions}>
+                  <TouchableOpacity
+                    onPress={() => openEditMember(item.id, member)}
+                    style={styles.smallActionBtn}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <EditIcon size={14} color={colors.textMuted} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => handleDeleteMember(member)}
+                    style={styles.smallActionBtn}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <TrashIcon size={14} color={colors.danger} />
+                  </TouchableOpacity>
                 </View>
               </View>
             ))}
@@ -142,10 +352,35 @@ export function ParticipantsScreen({ route, navigation }) {
     );
   };
 
+  const getModalTitle = () => {
+    switch (modalMode) {
+      case 'add_friend':
+        return 'Add New Friend';
+      case 'edit_friend':
+        return 'Edit Friend';
+      case 'add_family':
+        return 'Add New Family';
+      case 'edit_family':
+        return 'Edit Family Name';
+      case 'add_member':
+        return 'Add Family Member';
+      case 'edit_member':
+        return 'Edit Family Member';
+      default:
+        return 'Participant';
+    }
+  };
+
+  const getModalInputLabel = () => {
+    if (modalMode.includes('friend')) return "Friend's Name";
+    if (modalMode.includes('member')) return "Member's Name";
+    return 'Family Name';
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
-        <View>
+        <View style={styles.topBarTitleContainer}>
           <Text style={styles.pageTitle}>{isFriends ? 'Friends List' : 'Trip Families'}</Text>
           <Text style={styles.pageSubtitle}>
             {isFriends
@@ -154,7 +389,8 @@ export function ParticipantsScreen({ route, navigation }) {
           </Text>
         </View>
         <Button
-          title={isFriends ? '+ Add Friend' : '+ Add Family'}
+          title={isFriends ? 'Add Friend' : 'Add Family'}
+          icon={<PlusIcon size={14} color="#FFFFFF" />}
           size="sm"
           onPress={openAddFamily}
         />
@@ -167,42 +403,37 @@ export function ParticipantsScreen({ route, navigation }) {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              {isFriends ? (
+                <UsersIcon size={44} color="#CBD5E1" />
+              ) : (
+                <FamilyIcon size={44} color="#CBD5E1" />
+              )}
+            </View>
             <Text style={styles.emptyTitle}>
               {isFriends ? 'No friends added yet' : 'No families added yet'}
             </Text>
             <Text style={styles.emptySubtitle}>
               {isFriends
-                ? 'Click "+ Add Friend" above to add your travel buddies.'
-                : 'Click "+ Add Family" above to create family groups.'}
+                ? 'Tap "Add Friend" above to add your travel buddies.'
+                : 'Tap "Add Family" above to create family groups.'}
             </Text>
           </View>
         }
       />
 
-      {/* Modal for adding Friend / Family / Member */}
+      {/* Modal for Adding & Editing Friend / Family / Member */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {isFriends
-                ? 'Add New Friend'
-                : activeFamilyId
-                ? 'Add Family Member'
-                : 'Add New Family'}
-            </Text>
+            <Text style={styles.modalTitle}>{getModalTitle()}</Text>
 
             <Input
-              label={
-                isFriends
-                  ? "Friend's Name"
-                  : activeFamilyId
-                  ? "Member's Name"
-                  : 'Family Name'
-              }
+              label={getModalInputLabel()}
               placeholder={
-                isFriends
+                modalMode.includes('friend')
                   ? 'e.g. Rahul, Sneha, Vikram'
-                  : activeFamilyId
+                  : modalMode.includes('member')
                   ? 'e.g. Aarav, Ananya'
                   : 'e.g. Sharma Family'
               }
@@ -210,8 +441,8 @@ export function ParticipantsScreen({ route, navigation }) {
               onChangeText={setNameInput}
             />
 
-            {/* If adding a family member, show Adult / Child toggle */}
-            {!isFriends && activeFamilyId ? (
+            {/* If adding or editing a family member, show Adult / Child toggle */}
+            {modalMode.includes('member') ? (
               <View style={styles.typeSelectorContainer}>
                 <Text style={styles.inputLabel}>Member Category</Text>
                 <View style={styles.toggleRow}>
@@ -260,8 +491,9 @@ export function ParticipantsScreen({ route, navigation }) {
               />
               <Button
                 title="Save"
+                loading={saving}
                 style={styles.modalActionBtn}
-                onPress={handleAddUnit}
+                onPress={handleSaveModal}
               />
             </View>
           </View>
@@ -287,6 +519,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  topBarTitleContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
   pageTitle: {
     fontSize: 18,
     fontWeight: '800',
@@ -308,14 +544,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  friendAvatar: {
-    fontSize: 22,
+  avatarCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
   friendName: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
+    flex: 1,
+  },
+  actionIconGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  smallActionBtn: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: '#F8FAFC',
   },
   familyCard: {
     padding: 16,
@@ -333,15 +585,27 @@ const styles = StyleSheet.create({
   familyTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
   },
-  familyIcon: {
-    fontSize: 20,
+  familyIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 8,
   },
   familyName: {
     fontSize: 17,
     fontWeight: '700',
     color: colors.text,
+    marginRight: 8,
+  },
+  familyActionBtn: {
+    padding: 4,
+    marginRight: 4,
   },
   emptyMembersText: {
     fontSize: 13,
@@ -356,11 +620,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+  },
+  memberInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
   },
   memberName: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.text,
   },
   memberBadge: {
@@ -384,10 +656,18 @@ const styles = StyleSheet.create({
   childBadgeText: {
     color: '#D97706',
   },
+  memberActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   emptyContainer: {
     alignItems: 'center',
     padding: 32,
     marginTop: 40,
+  },
+  emptyIconContainer: {
+    marginBottom: 12,
   },
   emptyTitle: {
     fontSize: 17,

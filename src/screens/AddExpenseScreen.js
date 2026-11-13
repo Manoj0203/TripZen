@@ -1,24 +1,37 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { colors } from '../theme/colors';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { SplitPreview } from '../components/SplitPreview';
-import { createExpense } from '../services/tripService';
+import { createExpense, updateExpense, deleteExpense } from '../services/tripService';
 import { parseRupeesToPaise } from '../logic/currencyFormatter';
 import { calculateWeightedSplit, calculateEqualFamilySplit } from '../logic/splitCalculator';
+import { TrashIcon } from '../components/Icons';
 
 export function AddExpenseScreen({ route, navigation }) {
-  const { tripId, tripType, participants = [] } = route.params;
+  const { tripId, tripType, participants = [], expense } = route.params;
   const isFriends = tripType === 'friends';
+  const isEditing = Boolean(expense && expense.id);
 
-  const [title, setTitle] = useState('');
-  const [amountRupees, setAmountRupees] = useState('');
-  const [payerFamilyId, setPayerFamilyId] = useState(
-    participants.length > 0 ? participants[0].id : null
+  useEffect(() => {
+    navigation.setOptions({
+      title: isEditing ? 'Edit Expense' : 'Log Expense',
+    });
+  }, [navigation, isEditing]);
+
+  const [title, setTitle] = useState(expense?.title || '');
+  const [amountRupees, setAmountRupees] = useState(
+    expense?.amountPaise ? (expense.amountPaise / 100).toString() : ''
   );
-  const [splitMode, setSplitMode] = useState(isFriends ? 'equal_family' : 'weighted_members');
+  const [payerFamilyId, setPayerFamilyId] = useState(
+    expense?.payerFamilyId || (participants.length > 0 ? participants[0].id : null)
+  );
+  const [splitMode, setSplitMode] = useState(
+    expense?.splitType || (isFriends ? 'equal_family' : 'weighted_members')
+  );
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Map family names for split preview
   const familyNamesMap = useMemo(() => {
@@ -84,29 +97,72 @@ export function AddExpenseScreen({ route, navigation }) {
 
     setLoading(true);
     try {
-      await createExpense({
-        tripId,
-        title: title.trim(),
-        amountPaise,
-        payerFamilyId,
-        splitType: splitMode,
-        splits: liveSplits,
-      });
+      if (isEditing) {
+        await updateExpense({
+          expenseId: expense.id,
+          tripId,
+          title: title.trim(),
+          amountPaise,
+          payerFamilyId,
+          splitType: splitMode,
+          splits: liveSplits,
+        });
+      } else {
+        await createExpense({
+          tripId,
+          title: title.trim(),
+          amountPaise,
+          payerFamilyId,
+          splitType: splitMode,
+          splits: liveSplits,
+        });
+      }
 
       navigation.goBack();
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to save expense.');
+      Alert.alert('Error', isEditing ? 'Failed to update expense.' : 'Failed to save expense.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleDelete = () => {
+    if (!isEditing) return;
+    Alert.alert(
+      'Delete Expense',
+      `Are you sure you want to delete "${expense.title}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await deleteExpense(expense.id);
+              navigation.goBack();
+            } catch (e) {
+              console.error(e);
+              Alert.alert('Error', 'Failed to delete expense.');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.screenTitle}>Add New Expense</Text>
+      <Text style={styles.screenTitle}>
+        {isEditing ? 'Edit Expense' : 'Add New Expense'}
+      </Text>
       <Text style={styles.screenSubtitle}>
-        Record a payment and automatically calculate fair shares.
+        {isEditing
+          ? 'Update the details or splitting method for this bill.'
+          : 'Record a payment and automatically calculate fair shares.'}
       </Text>
 
       <Input
@@ -196,12 +252,25 @@ export function AddExpenseScreen({ route, navigation }) {
       />
 
       <Button
-        title="Save Expense"
+        title={isEditing ? 'Update Expense' : 'Save Expense'}
         size="lg"
         loading={loading}
         onPress={handleSaveExpense}
         style={styles.saveBtn}
       />
+
+      {isEditing ? (
+        <Button
+          title="Delete Expense"
+          icon={<TrashIcon size={16} color={colors.danger} />}
+          variant="outline"
+          size="md"
+          loading={deleting}
+          onPress={handleDelete}
+          style={styles.deleteBtn}
+          textStyle={{ color: colors.danger }}
+        />
+      ) : null}
     </ScrollView>
   );
 }
@@ -213,6 +282,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    paddingBottom: 40,
   },
   screenTitle: {
     fontSize: 22,
@@ -286,7 +356,10 @@ const styles = StyleSheet.create({
     color: colors.primaryDark,
   },
   saveBtn: {
+    marginTop: 10,
+  },
+  deleteBtn: {
     marginTop: 12,
-    marginBottom: 40,
+    borderColor: colors.danger,
   },
 });

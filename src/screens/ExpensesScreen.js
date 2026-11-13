@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { colors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { getExpenses, getParticipants } from '../services/tripService';
+import { getExpenses, getParticipants, deleteExpense } from '../services/tripService';
 import { formatPaiseToRupees } from '../logic/currencyFormatter';
 
 export function ExpensesScreen({ route, navigation }) {
@@ -52,22 +52,59 @@ export function ExpensesScreen({ route, navigation }) {
 
   const totalPaise = expensesList.reduce((sum, item) => sum + item.amountPaise, 0);
 
+  const handleDeleteExpense = (item) => {
+    Alert.alert(
+      'Delete Expense',
+      `Are you sure you want to delete "${item.title}" (${formatPaiseToRupees(item.amountPaise)})?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteExpense(item.id);
+              await loadData();
+            } catch (e) {
+              console.error(e);
+              Alert.alert('Error', 'Failed to delete expense.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderExpenseItem = ({ item }) => {
     return (
-      <Card style={styles.expenseCard}>
-        <View style={styles.expenseHeader}>
-          <View style={styles.titleInfo}>
-            <Text style={styles.expenseTitle}>{item.title}</Text>
-            <Text style={styles.expenseSub}>
-              Paid by <Text style={styles.payerBold}>{getPayerName(item.payerFamilyId)}</Text> •{' '}
-              {new Date(item.expenseDate).toLocaleDateString()}
-            </Text>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onLongPress={() => handleDeleteExpense(item)}
+      >
+        <Card style={styles.expenseCard}>
+          <View style={styles.expenseHeader}>
+            <View style={styles.titleInfo}>
+              <Text style={styles.expenseTitle}>{item.title}</Text>
+              <Text style={styles.expenseSub}>
+                Paid by <Text style={styles.payerBold}>{getPayerName(item.payerFamilyId)}</Text> •{' '}
+                {new Date(item.expenseDate).toLocaleDateString()}
+              </Text>
+            </View>
+            <View style={styles.amountActionCol}>
+              <Text style={styles.expenseAmount}>
+                {formatPaiseToRupees(item.amountPaise)}
+              </Text>
+              <TouchableOpacity
+                style={styles.deleteExpenseBtn}
+                onPress={() => handleDeleteExpense(item)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.deleteExpenseText}>🗑️</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.expenseAmount}>
-            {formatPaiseToRupees(item.amountPaise)}
-          </Text>
-        </View>
-      </Card>
+        </Card>
+      </TouchableOpacity>
     );
   };
 
@@ -178,6 +215,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
+  },
+  amountActionCol: {
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  deleteExpenseBtn: {
+    padding: 2,
+  },
+  deleteExpenseText: {
+    fontSize: 13,
   },
   emptyContainer: {
     alignItems: 'center',

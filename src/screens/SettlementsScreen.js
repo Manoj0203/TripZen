@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { getSettlementDashboard, recordSettlement, getParticipants } from '../services/tripService';
 import { formatPaiseToRupees } from '../logic/currencyFormatter';
+import { CheckCircleIcon, ArrowRightSimple } from '../components/Icons';
 
 export function SettlementsScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
@@ -165,7 +166,9 @@ export function SettlementsScreen({ route, navigation }) {
 
       {suggestedSettlements.length === 0 ? (
         <Card style={styles.allSettledCard}>
-          <Text style={styles.celebrationIcon}>🎉</Text>
+          <View style={styles.celebrationIconContainer}>
+            <CheckCircleIcon size={36} color={colors.primary} />
+          </View>
           <Text style={styles.allSettledTitle}>All Settled Up!</Text>
           <Text style={styles.allSettledSub}>
             Nobody owes any money. Everyone is square!
@@ -177,7 +180,10 @@ export function SettlementsScreen({ route, navigation }) {
             <View style={styles.settlementDetails}>
               <View style={styles.partiesRow}>
                 <Text style={styles.payerParty}>{getName(s.from)}</Text>
-                <Text style={styles.arrowParty}>➔ pays ➔</Text>
+                <View style={styles.arrowParty}>
+                  <Text style={styles.paysText}>pays</Text>
+                  <ArrowRightSimple size={14} color={colors.textMuted} />
+                </View>
                 <Text style={styles.receiverParty}>{getName(s.to)}</Text>
               </View>
               <Text style={styles.settlementAmount}>
@@ -293,8 +299,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4',
     borderColor: '#BBF7D0',
   },
-  celebrationIcon: {
-    fontSize: 32,
+  celebrationIconContainer: {
     marginBottom: 8,
   },
   allSettledTitle: {
@@ -329,9 +334,19 @@ const styles = StyleSheet.create({
     color: '#B91C1C',
   },
   arrowParty: {
-    fontSize: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginHorizontal: 8,
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  paysText: {
+    fontSize: 11,
+    fontWeight: '600',
     color: colors.textMuted,
-    marginHorizontal: 6,
   },
   receiverParty: {
     fontSize: 14,
