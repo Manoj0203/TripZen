@@ -1,9 +1,10 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
 import { colors } from '../theme/colors';
 
 export function Button({
   title,
+  icon,
   onPress,
   variant = 'primary', // 'primary' | 'secondary' | 'outline' | 'danger'
   size = 'md',        // 'sm' | 'md' | 'lg'
@@ -56,15 +57,21 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={variant === 'outline' ? colors.primary : '#FFFFFF'} />
       ) : (
-        <Text style={[styles.baseText, styles[`textSize_${size}`], getTextStyle(), textStyle]}>
-          {title}
-        </Text>
+        <>
+          {icon ? <View style={styles.iconWrapper}>{icon}</View> : null}
+          <Text style={[styles.baseText, styles[`textSize_${size}`], getTextStyle(), textStyle]}>
+            {title}
+          </Text>
+        </>
       )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
+  iconWrapper: {
+    marginRight: 6,
+  },
   baseContainer: {
     borderRadius: 12,
     alignItems: 'center',

@@ -234,6 +234,19 @@ export async function getSettlementDashboard(tripId) {
   };
 }
 
+export async function deleteTrip(tripId) {
+  const db = getDb();
+  await db.delete(trips).where(eq(trips.id, tripId));
+  return { success: true, tripId };
+}
+
+export async function archiveTrip(tripId, isArchived = true) {
+  const db = getDb();
+  const now = new Date();
+  await db.update(trips).set({ isArchived, updatedAt: now }).where(eq(trips.id, tripId));
+  return { success: true, tripId, isArchived };
+}
+
 /**
  * Export full trip data into an encrypted payload.
  */
@@ -256,4 +269,117 @@ export async function exportTripEncrypted(tripId, password) {
   };
 
   return encryptData(payload, password);
+}
+
+/**
+ * Import a full trip from an AES-256 encrypted payload string.
+ */
+export async function importTripEncrypted(encryptedBase64, password) {
+  const db = getDb();
+  const payload = decryptData(encryptedBase64, password);
+
+  if (!payload || !payload.trip || !payload.trip.id || !payload.trip.name) {
+    throw new Error('Invalid trip backup format.');
+  }
+
+  const {
+    trip,
+    families = [],
+    members = [],
+    expenses: expList = [],
+    expenseSplits: splitList = [],
+    settlements: settList = [],
+  } = payload;
+
+  // If trip already exists locally, delete it first to ensure clean overwrite
+  const existing = await getTripById(trip.id);
+  if (existing) {
+    await deleteTrip(trip.id);
+  }
+
+  const now = new Date();
+
+  // 1. Insert Trip
+  await db.insert(trips).values({
+    id: trip.id,
+    name: trip.name,
+    description: trip.description || '',
+    tripType: trip.tripType || 'families',
+    currencyCode: trip.currencyCode || 'INR',
+    isArchived: Boolean(trip.isArchived),
+    createdAt: trip.createdAt ? new Date(trip.createdAt) : now,
+    updatedAt: now,
+  });
+
+  // 2. Insert Families
+  for (const f of families) {
+    await db.insert(tripFamilies).values({
+      id: f.id,
+      tripId: trip.id,
+      name: f.name,
+      createdAt: f.createdAt ? new Date(f.createdAt) : now,
+      updatedAt: now,
+    });
+  }
+
+  // 3. Insert Members
+  for (const m of members) {
+    await db.insert(tripMembers).values({
+      id: m.id,
+      tripId: trip.id,
+      familyId: m.familyId,
+      name: m.name,
+      memberType: m.memberType || 'adult',
+      defaultWeight: Number(m.defaultWeight) || 100,
+      createdAt: m.createdAt ? new Date(m.createdAt) : now,
+      updatedAt: now,
+    });
+  }
+
+  // 4. Insert Expenses
+  for (const e of expList) {
+    await db.insert(expenses).values({
+      id: e.id,
+      tripId: trip.id,
+      title: e.title,
+      amountPaise: Number(e.amountPaise),
+      payerFamilyId: e.payerFamilyId,
+      payerMemberId: e.payerMemberId || null,
+      splitType: e.splitType || 'weighted_members',
+      category: e.category || 'general',
+      expenseDate: e.expenseDate ? new Date(e.expenseDate) : now,
+      createdAt: e.createdAt ? new Date(e.createdAt) : now,
+      updatedAt: now,
+    });
+  }
+
+  // 5. Insert Splits
+  for (const s of splitList) {
+    await db.insert(expenseSplits).values({
+      id: s.id || uuidv4(),
+      expenseId: s.expenseId,
+      familyId: s.familyId,
+      memberId: s.memberId || null,
+      sharePaise: Number(s.sharePaise),
+      weightUsed: Number(s.weightUsed) || 100,
+      createdAt: s.createdAt ? new Date(s.createdAt) : now,
+    });
+  }
+
+  // 6. Insert Settlements
+  for (const st of settList) {
+    await db.insert(settlements).values({
+      id: st.id || uuidv4(),
+      tripId: trip.id,
+      fromFamilyId: st.fromFamilyId,
+      toFamilyId: st.toFamilyId,
+      amountPaise: Number(st.amountPaise),
+      paymentMethod: st.paymentMethod || 'cash',
+      notes: st.notes || '',
+      settledAt: st.settledAt ? new Date(st.settledAt) : now,
+      createdAt: st.createdAt ? new Date(st.createdAt) : now,
+    });
+  }
+
+  return trip;
 }
