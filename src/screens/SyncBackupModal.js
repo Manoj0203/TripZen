@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  Clipboard,
   Share,
   TouchableOpacity,
 } from 'react-native';
@@ -16,6 +15,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { exportTripEncrypted, importTripEncrypted } from '../services/tripService';
 import { CopyIcon, CheckIcon, ShareIcon, QrCodeIcon } from '../components/Icons';
+import { copyToClipboard, getFromClipboard } from '../utils/clipboard';
 
 export function SyncBackupModal({ route, navigation }) {
   const { tripId, tripName } = route.params || {};
@@ -52,10 +52,10 @@ export function SyncBackupModal({ route, navigation }) {
     }
   };
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!encryptedPayload) return;
     try {
-      Clipboard.setString(encryptedPayload);
+      await copyToClipboard(encryptedPayload);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
       Alert.alert('Copied!', 'Encrypted backup string copied to your clipboard.');
@@ -79,7 +79,7 @@ export function SyncBackupModal({ route, navigation }) {
 
   const handlePasteFromClipboard = async () => {
     try {
-      const content = await Clipboard.getString();
+      const content = await getFromClipboard();
       if (content) {
         setImportPayload(content);
       } else {
