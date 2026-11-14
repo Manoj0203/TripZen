@@ -24,8 +24,10 @@ export function CustomAlertModal({
   loading = false,
   showCancel = true,
   icon,
+  position = 'center', // 'center' | 'bottom'
 }) {
   const { colors, isDark } = useTheme();
+  const isBottom = position === 'bottom';
 
   const getIcon = () => {
     if (icon) return icon;
@@ -56,6 +58,25 @@ export function CustomAlertModal({
     }
   };
 
+  const handleButtonPress = async (btn) => {
+    // Immediately dismiss the modal
+    if (typeof onCancel === 'function') {
+      onCancel();
+    }
+    if (typeof btn.onPress === 'function') {
+      await btn.onPress();
+    }
+  };
+
+  const handleConfirmPress = async () => {
+    if (typeof onCancel === 'function') {
+      onCancel();
+    }
+    if (typeof onConfirm === 'function') {
+      await onConfirm();
+    }
+  };
+
   const renderButtons = () => {
     if (buttons && buttons.length > 0) {
       return (
@@ -68,8 +89,8 @@ export function CustomAlertModal({
                 title={btn.text}
                 variant={btn.variant || (isCancel ? 'outline' : 'primary')}
                 size="md"
-                onPress={btn.onPress || onCancel}
-                style={[styles.customBtn, idx > 0 && { marginTop: 8 }]}
+                onPress={() => handleButtonPress(btn)}
+                style={[styles.customBtn, idx > 0 && { marginTop: 10 }]}
               />
             );
           })}
@@ -93,7 +114,7 @@ export function CustomAlertModal({
           variant={type === 'danger' ? 'danger' : 'primary'}
           size="md"
           loading={loading}
-          onPress={onConfirm}
+          onPress={handleConfirmPress}
           style={styles.actionBtn}
         />
       </View>
@@ -105,26 +126,34 @@ export function CustomAlertModal({
       isVisible={isVisible}
       onBackdropPress={onCancel}
       onBackButtonPress={onCancel}
+      swipeDirection={isBottom ? ['down'] : undefined}
+      onSwipeComplete={onCancel}
       backdropOpacity={0.65}
       backdropColor="#000000"
-      animationIn="zoomIn"
-      animationOut="zoomOut"
+      animationIn={isBottom ? 'slideInUp' : 'zoomIn'}
+      animationOut={isBottom ? 'slideOutDown' : 'zoomOut'}
       animationInTiming={160}
       animationOutTiming={120}
       backdropTransitionOutTiming={0}
       useNativeDriver
       useNativeDriverForBackdrop
-      style={styles.modal}
+      style={[styles.modal, isBottom && styles.bottomModal]}
     >
       <View
         style={[
           styles.container,
+          isBottom && styles.bottomContainer,
           {
             backgroundColor: colors.card,
             borderColor: colors.border,
           },
         ]}
       >
+        {/* Bottom Sheet Drag Handle */}
+        {isBottom ? (
+          <View style={[styles.dragHandle, { backgroundColor: colors.border }]} />
+        ) : null}
+
         {/* Animated Icon Badge */}
         <View style={[styles.iconCircle, { backgroundColor: getIconBg() }]}>
           {getIcon()}
@@ -153,6 +182,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  bottomModal: {
+    margin: 0,
+    justifyContent: 'flex-end',
+  },
   container: {
     width: '100%',
     maxWidth: 360,
@@ -165,6 +198,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 10,
+  },
+  bottomContainer: {
+    width: '100%',
+    maxWidth: '100%',
+    borderRadius: 0,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderTopWidth: 1,
+    paddingTop: 12,
+    paddingBottom: 34,
+    paddingHorizontal: 20,
+  },
+  dragHandle: {
+    width: 44,
+    height: 5,
+    borderRadius: 3,
+    marginBottom: 16,
   },
   iconCircle: {
     width: 60,

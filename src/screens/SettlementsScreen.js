@@ -75,9 +75,10 @@ export function SettlementsScreen({ route, navigation }) {
     const amountStr = formatPaiseToRupees(settlement.amountPaise);
 
     showAlert({
-      title: 'Confirm Settlement',
-      message: `Record payment of ${amountStr} from ${fromName} to ${toName}?`,
+      title: 'Record Payment',
+      message: `${fromName} pays ${amountStr} to ${toName}`,
       type: 'info',
+      position: 'bottom',
       buttons: [
         {
           text: 'Mark as Settled (Cash)',

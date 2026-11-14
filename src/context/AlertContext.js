@@ -16,6 +16,7 @@ export function AlertProvider({ children }) {
     cancelText: 'Cancel',
     showCancel: true,
     buttons: null,
+    position: 'center',
     onConfirm: null,
     onCancel: null,
   });
@@ -33,9 +34,23 @@ export function AlertProvider({ children }) {
       cancelText = 'Cancel',
       showCancel = true,
       buttons = null,
+      position = 'center',
       onConfirm = null,
       onCancel = null,
     }) => {
+      // Auto-wrap buttons to always dismiss alert on press
+      const wrappedButtons = buttons
+        ? buttons.map(btn => ({
+            ...btn,
+            onPress: async () => {
+              hideAlert();
+              if (typeof btn.onPress === 'function') {
+                await btn.onPress();
+              }
+            },
+          }))
+        : null;
+
       setAlertConfig({
         isVisible: true,
         title,
@@ -44,7 +59,8 @@ export function AlertProvider({ children }) {
         confirmText,
         cancelText,
         showCancel,
-        buttons,
+        buttons: wrappedButtons,
+        position,
         onConfirm: async () => {
           hideAlert();
           if (typeof onConfirm === 'function') {
@@ -74,6 +90,7 @@ export function AlertProvider({ children }) {
         cancelText={alertConfig.cancelText}
         showCancel={alertConfig.showCancel}
         buttons={alertConfig.buttons}
+        position={alertConfig.position}
         onConfirm={alertConfig.onConfirm}
         onCancel={alertConfig.onCancel}
       />

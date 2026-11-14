@@ -111,4 +111,62 @@ describe('CustomAlertModal and AlertContext', () => {
 
     expect(root.findAllByProps({ children: 'Action Required' }).length).toBe(0);
   });
+
+  test('renders bottom sheet when position is bottom', () => {
+    let tree;
+    ReactTestRenderer.act(() => {
+      tree = ReactTestRenderer.create(
+        <ThemeProvider>
+          <CustomAlertModal
+            isVisible={true}
+            title="Record Payment"
+            message="Rahul pays ₹500 to Amit"
+            position="bottom"
+            buttons={[
+              { text: 'Mark as Settled (Cash)', variant: 'primary' },
+              { text: 'Mark as Settled (Online)', variant: 'secondary' },
+              { text: 'Cancel', style: 'cancel' },
+            ]}
+          />
+        </ThemeProvider>
+      );
+    });
+
+    const root = tree.root;
+    expect(root.findByProps({ children: 'Record Payment' })).toBeTruthy();
+    expect(root.findByProps({ children: 'Rahul pays ₹500 to Amit' })).toBeTruthy();
+    expect(root.findByProps({ children: 'Mark as Settled (Cash)' })).toBeTruthy();
+    expect(root.findByProps({ children: 'Mark as Settled (Online)' })).toBeTruthy();
+    expect(root.findByProps({ children: 'Cancel' })).toBeTruthy();
+  });
+
+  test('clicking button in buttons array dismisses modal via onCancel', () => {
+    const onCancel = jest.fn();
+    const onCash = jest.fn();
+
+    let tree;
+    ReactTestRenderer.act(() => {
+      tree = ReactTestRenderer.create(
+        <ThemeProvider>
+          <CustomAlertModal
+            isVisible={true}
+            title="Confirm"
+            onCancel={onCancel}
+            buttons={[
+              { text: 'Cash', onPress: onCash },
+            ]}
+          />
+        </ThemeProvider>
+      );
+    });
+
+    const root = tree.root;
+    const cashBtn = root.findByProps({ title: 'Cash' });
+    ReactTestRenderer.act(() => {
+      cashBtn.props.onPress();
+    });
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onCash).toHaveBeenCalledTimes(1);
+  });
 });
