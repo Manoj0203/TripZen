@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useAlert } from '../context/AlertContext';
 import { Input } from '../components/Input';
@@ -18,6 +19,7 @@ import { FamilyIcon, UsersIcon, DownloadIcon } from '../components/Icons';
 
 export function CreateTripScreen({ navigation }) {
   const { colors, isDark } = useTheme();
+  const insets = React.useContext(SafeAreaInsetsContext) || { top: 0, bottom: 0, left: 0, right: 0 };
   const { showAlert } = useAlert();
 
   const [name, setName] = useState('');
@@ -67,7 +69,7 @@ export function CreateTripScreen({ navigation }) {
     >
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 16) + 24 }]}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={[styles.screenTitle, { color: colors.text }]}>New Trip</Text>

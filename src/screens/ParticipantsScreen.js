@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
@@ -40,6 +41,7 @@ export function ParticipantsScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
   const isFriends = tripType === 'friends';
   const { colors, isDark } = useTheme();
+  const insets = React.useContext(SafeAreaInsetsContext) || { top: 0, bottom: 0, left: 0, right: 0 };
   const { showAlert } = useAlert();
 
   const [participants, setParticipants] = useState([]);
@@ -432,7 +434,7 @@ export function ParticipantsScreen({ route, navigation }) {
         data={participants}
         keyExtractor={item => item.id}
         renderItem={isFriends ? renderFriendItem : renderFamilyItem}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: 24 }]}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIconContainer}>
@@ -460,7 +462,16 @@ export function ParticipantsScreen({ route, navigation }) {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.modalOverlay}
         >
-          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View
+            style={[
+              styles.modalContent,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                paddingBottom: Math.max(insets.bottom, 16) + 12,
+              },
+            ]}
+          >
             <Text style={[styles.modalTitle, { color: colors.text }]}>{getModalTitle()}</Text>
 
             <ScrollView

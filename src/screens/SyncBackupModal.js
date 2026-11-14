@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 import { useTheme } from '../theme/ThemeContext';
 import { useAlert } from '../context/AlertContext';
@@ -22,6 +23,7 @@ import { copyToClipboard, getFromClipboard } from '../utils/clipboard';
 export function SyncBackupModal({ route, navigation }) {
   const { tripId, tripName } = route.params || {};
   const { colors, isDark } = useTheme();
+  const insets = React.useContext(SafeAreaInsetsContext) || { top: 0, bottom: 0, left: 0, right: 0 };
   const { showAlert } = useAlert();
 
   const [activeTab, setActiveTab] = useState('export'); // 'export' | 'import'
@@ -166,7 +168,7 @@ export function SyncBackupModal({ route, navigation }) {
     >
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 16) + 32 }]}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={[styles.screenTitle, { color: colors.text }]}>Offline Backup & Sync</Text>

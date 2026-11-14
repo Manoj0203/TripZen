@@ -167,7 +167,7 @@ export function ExpensesScreen({ route, navigation }) {
         data={expensesList}
         keyExtractor={item => item.id}
         renderItem={renderExpenseItem}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: 24 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

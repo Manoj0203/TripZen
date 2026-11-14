@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
@@ -30,6 +30,7 @@ import { getFromClipboard } from '../utils/clipboard';
 
 export function HomeScreen({ navigation }) {
   const { colors } = useTheme();
+  const insets = React.useContext(SafeAreaInsetsContext) || { top: 0, bottom: 0, left: 0, right: 0 };
   const { showAlert } = useAlert();
 
   const [trips, setTrips] = useState([]);
@@ -302,7 +303,7 @@ export function HomeScreen({ navigation }) {
       </View>
 
       {trips.length === 0 ? (
-        <View style={styles.emptyContainer}>
+        <View style={[styles.emptyContainer, { paddingBottom: insets.bottom + 32 }]}>
           <View style={[styles.emptyIconCircle, { backgroundColor: colors.surface }]}>
             <TripIcon size={36} color={colors.textMuted} />
           </View>
@@ -331,7 +332,7 @@ export function HomeScreen({ navigation }) {
           data={trips}
           keyExtractor={item => item.id}
           renderItem={renderTripItem}
-          contentContainerStyle={[styles.list, { paddingBottom: 96 }]}
+          contentContainerStyle={[styles.list, { paddingBottom: 88 + insets.bottom }]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -345,7 +346,13 @@ export function HomeScreen({ navigation }) {
 
       {/* Floating Action Button (FAB) in Bottom Right */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.primary }]}
+        style={[
+          styles.fab,
+          {
+            backgroundColor: colors.primary,
+            bottom: Math.max(insets.bottom, 12) + 16,
+          },
+        ]}
         activeOpacity={0.8}
         onPress={() => navigation.navigate('CreateTrip')}
         onLongPress={() => setImportModalVisible(true)}
@@ -364,7 +371,7 @@ export function HomeScreen({ navigation }) {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}
         >
           <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Edit Trip</Text>
@@ -420,7 +427,7 @@ export function HomeScreen({ navigation }) {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}
         >
           <View style={[styles.importModalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Import Trip</Text>
@@ -519,7 +526,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 28,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.28,

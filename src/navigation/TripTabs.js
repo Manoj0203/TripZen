@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { ExpensesScreen } from '../screens/ExpensesScreen';
 import { ParticipantsScreen } from '../screens/ParticipantsScreen';
 import { SettlementsScreen } from '../screens/SettlementsScreen';
@@ -20,6 +21,8 @@ export function TripTabs({ route, navigation }) {
   const { tripId, tripName, tripType = 'families' } = route.params;
   const isFriends = tripType === 'friends';
   const { colors } = useTheme();
+  const insets = React.useContext(SafeAreaInsetsContext) || { top: 0, bottom: 0, left: 0, right: 0 };
+  const bottomInset = Math.max(insets.bottom, 6);
 
   return (
     <Tab.Navigator
@@ -89,9 +92,9 @@ export function TripTabs({ route, navigation }) {
           backgroundColor: colors.tabBarBg,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          paddingBottom: 6,
           paddingTop: 6,
-          height: 60,
+          paddingBottom: bottomInset,
+          height: 54 + bottomInset,
         },
         tabBarLabelStyle: {
           fontSize: 12,

@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { View, Text } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { CustomAlertModal } from '../src/components/CustomAlertModal';
 import { AlertProvider, useAlert } from '../src/context/AlertContext';
 import { ThemeProvider } from '../src/theme/ThemeContext';
@@ -168,5 +169,38 @@ describe('CustomAlertModal and AlertContext', () => {
 
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onCash).toHaveBeenCalledTimes(1);
+  });
+
+  test('adapts bottom padding dynamically for Android 3-button navigation insets', () => {
+    let tree;
+    const navBar3ButtonInsets = { top: 24, bottom: 48, left: 0, right: 0 };
+    ReactTestRenderer.act(() => {
+      tree = ReactTestRenderer.create(
+        <SafeAreaInsetsContext.Provider value={navBar3ButtonInsets}>
+          <ThemeProvider>
+            <CustomAlertModal
+              isVisible={true}
+              title="Record Payment"
+              position="bottom"
+              buttons={[{ text: 'Cancel', style: 'cancel' }]}
+            />
+          </ThemeProvider>
+        </SafeAreaInsetsContext.Provider>
+      );
+    });
+
+    const root = tree.root;
+    const views = root.findAllByType(View);
+    const bottomContainerView = views.find(
+      v =>
+        v.props.style &&
+        Array.isArray(v.props.style) &&
+        v.props.style.some(
+          s =>
+            (s && s.paddingBottom === 48 + 16) ||
+            (Array.isArray(s) && s.some(nested => nested && nested.paddingBottom === 48 + 16))
+        )
+    );
+    expect(bottomContainerView).toBeDefined();
   });
 });

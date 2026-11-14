@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
@@ -20,6 +21,7 @@ import { getFromClipboard } from '../utils/clipboard';
 
 export function ImportTripScreen({ navigation }) {
   const { colors } = useTheme();
+  const insets = React.useContext(SafeAreaInsetsContext) || { top: 0, bottom: 0, left: 0, right: 0 };
   const { showAlert } = useAlert();
 
   const [password, setPassword] = useState('');
@@ -99,7 +101,7 @@ export function ImportTripScreen({ navigation }) {
     >
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 16) + 32 }]}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={[styles.screenTitle, { color: colors.text }]}>Import Trip</Text>

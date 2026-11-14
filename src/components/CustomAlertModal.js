@@ -2,6 +2,7 @@ import '../utils/interactionManagerPolyfill';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Modal from 'react-native-modal';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { Button } from './Button';
 import {
@@ -27,6 +28,7 @@ export function CustomAlertModal({
   position = 'center', // 'center' | 'bottom'
 }) {
   const { colors, isDark } = useTheme();
+  const insets = React.useContext(SafeAreaInsetsContext) || { top: 0, bottom: 0, left: 0, right: 0 };
   const isBottom = position === 'bottom';
 
   const getIcon = () => {
@@ -142,7 +144,10 @@ export function CustomAlertModal({
       <View
         style={[
           styles.container,
-          isBottom && styles.bottomContainer,
+          isBottom && [
+            styles.bottomContainer,
+            { paddingBottom: Math.max(insets.bottom, 16) + 16 },
+          ],
           {
             backgroundColor: colors.card,
             borderColor: colors.border,
