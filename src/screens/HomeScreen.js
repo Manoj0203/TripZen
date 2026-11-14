@@ -310,12 +310,12 @@ export function HomeScreen({ navigation }) {
           </View>
           <View style={styles.headerRightGroup}>
             <TouchableOpacity
-              style={styles.settingsBtn}
+              style={[styles.settingsBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
               onPress={() => navigation.navigate('Settings')}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <SettingsIcon size={20} color={colors.primary} />
+              <SettingsIcon size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
         </View>
@@ -686,6 +686,8 @@ const styles = StyleSheet.create({
     padding: 6,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
   },
   fab: {
     position: 'absolute',
