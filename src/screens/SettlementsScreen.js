@@ -5,7 +5,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { getSettlementDashboard, recordSettlement, getParticipants, deleteSettlement } from '../services/tripService';
 import { formatPaiseToRupees } from '../logic/currencyFormatter';
-import { CheckCircleIcon, ArrowRightSimple } from '../components/Icons';
+import { CheckCircleIcon, ArrowRightSimple, TrashIcon } from '../components/Icons';
 
 export function SettlementsScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
@@ -247,9 +247,10 @@ export function SettlementsScreen({ route, navigation }) {
                   <TouchableOpacity
                     style={styles.deletePaymentBtn}
                     onPress={() => handleDeleteSettlement(rec)}
+                    activeOpacity={0.6}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Text style={styles.deletePaymentText}>🗑️</Text>
+                    <TrashIcon size={15} color={colors.danger} />
                   </TouchableOpacity>
                 </View>
               </View>

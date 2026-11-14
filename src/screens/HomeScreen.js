@@ -8,6 +8,9 @@ import {
   RefreshControl,
   Modal,
   Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { Card } from '../components/Card';
@@ -164,7 +167,7 @@ export function HomeScreen({ navigation }) {
     const isFriends = item.tripType === 'friends';
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={0.75}
         onPress={() =>
           navigation.navigate('TripDetails', {
             tripId: item.id,
@@ -200,6 +203,7 @@ export function HomeScreen({ navigation }) {
             <View style={styles.cardActionRow}>
               {/* Edit Trip Button */}
               <TouchableOpacity
+                activeOpacity={0.6}
                 onPress={() => handleOpenEdit(item)}
                 style={styles.actionIconBtn}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -209,6 +213,7 @@ export function HomeScreen({ navigation }) {
 
               {/* Delete Trip Button */}
               <TouchableOpacity
+                activeOpacity={0.6}
                 onPress={() => handleDeleteTrip(item)}
                 style={styles.actionIconBtn}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -291,25 +296,34 @@ export function HomeScreen({ navigation }) {
         animationType="slide"
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Trip</Text>
             <Text style={styles.modalSubtitle}>Update trip details</Text>
 
-            <Input
-              label="Trip Name"
-              placeholder="e.g. Goa Vacation 2026"
-              value={editName}
-              onChangeText={setEditName}
-            />
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              style={styles.modalScrollBody}
+            >
+              <Input
+                label="Trip Name"
+                placeholder="e.g. Goa Vacation 2026"
+                value={editName}
+                onChangeText={setEditName}
+              />
 
-            <Input
-              label="Description (Optional)"
-              placeholder="Notes, destination, hotel info..."
-              value={editDescription}
-              onChangeText={setEditDescription}
-              multiline
-            />
+              <Input
+                label="Description (Optional)"
+                placeholder="Notes, destination, hotel info..."
+                value={editDescription}
+                onChangeText={setEditDescription}
+                multiline
+              />
+            </ScrollView>
 
             <View style={styles.modalButtonRow}>
               <Button
@@ -326,7 +340,7 @@ export function HomeScreen({ navigation }) {
               />
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Import Trip Modal */}
@@ -336,40 +350,54 @@ export function HomeScreen({ navigation }) {
         animationType="slide"
         onRequestClose={() => setImportModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.importModalContent}>
             <Text style={styles.modalTitle}>Import Trip</Text>
             <Text style={styles.modalSubtitle}>
               Paste the encrypted trip backup string and enter the password used to protect it.
             </Text>
 
-            <View style={styles.inputHeaderRow}>
-              <Text style={styles.inputLabel}>Encrypted Backup String</Text>
-              <TouchableOpacity
-                style={styles.pasteChip}
-                onPress={handlePasteFromClipboard}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
-              </TouchableOpacity>
-            </View>
+            <ScrollView
+              style={styles.importScrollBody}
+              contentContainerStyle={styles.importScrollContent}
+              showsVerticalScrollIndicator={true}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.inputHeaderRow}>
+                <Text style={styles.inputLabel}>Encrypted Backup String</Text>
+                <TouchableOpacity
+                  style={styles.pasteChip}
+                  onPress={handlePasteFromClipboard}
+                  activeOpacity={0.65}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
+                </TouchableOpacity>
+              </View>
 
-            <Input
-              placeholder="Paste encrypted backup string here..."
-              value={importPayload}
-              onChangeText={setImportPayload}
-              multiline
-              numberOfLines={4}
-            />
+              <Input
+                placeholder="Paste encrypted backup string here..."
+                value={importPayload}
+                onChangeText={setImportPayload}
+                multiline
+                numberOfLines={4}
+                containerStyle={styles.importPayloadContainer}
+                inputStyle={styles.importPayloadInput}
+              />
 
-            <Input
-              label="Password"
-              placeholder="Enter backup password"
-              value={importPassword}
-              onChangeText={setImportPassword}
-              secureTextEntry
-            />
+              <Input
+                label="Password"
+                placeholder="Enter backup password"
+                value={importPassword}
+                onChangeText={setImportPassword}
+                secureTextEntry
+              />
+            </ScrollView>
 
+            {/* Pinned Action Buttons */}
             <View style={styles.modalButtonRow}>
               <Button
                 title="Cancel"
@@ -389,7 +417,7 @@ export function HomeScreen({ navigation }) {
               />
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -545,36 +573,73 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 24,
     width: '100%',
-    maxWidth: 440,
+    maxWidth: 460,
+    maxHeight: '90%',
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  modalScrollBody: {
+    flexShrink: 1,
+  },
+  importModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 480,
+    maxHeight: '92%',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  importScrollBody: {
+    flexShrink: 1,
+    marginVertical: 4,
+  },
+  importScrollContent: {
+    paddingBottom: 8,
+  },
+  importPayloadContainer: {
+    marginBottom: 12,
+  },
+  importPayloadInput: {
+    height: 85,
+    maxHeight: 90,
+    fontSize: 12,
+    lineHeight: 16,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '800',
     color: colors.text,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   modalSubtitle: {
     fontSize: 13,
     color: colors.textMuted,
-    marginBottom: 18,
+    marginBottom: 14,
     lineHeight: 18,
   },
   modalButtonRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 12,
-    marginTop: 16,
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
   },
   modalBtn: {
     minWidth: 100,

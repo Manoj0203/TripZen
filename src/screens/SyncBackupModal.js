@@ -7,6 +7,8 @@ import {
   Alert,
   Share,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { colors } from '../theme/colors';
@@ -127,166 +129,182 @@ export function SyncBackupModal({ route, navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.screenTitle}>Offline Backup & Sync</Text>
-      <Text style={styles.screenSubtitle}>
-        Share, backup, or restore trip data safely without an internet connection using AES-256 encryption.
-      </Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.screenTitle}>Offline Backup & Sync</Text>
+        <Text style={styles.screenSubtitle}>
+          Share, backup, or restore trip data safely without an internet connection using AES-256 encryption.
+        </Text>
 
-      {/* Tabs */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'export' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('export')}
-        >
-          <Text style={[styles.tabText, activeTab === 'export' && styles.tabTextActive]}>
-            Export & Backup
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'import' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('import')}
-        >
-          <Text style={[styles.tabText, activeTab === 'import' && styles.tabTextActive]}>
-            Import & Restore
-          </Text>
-        </TouchableOpacity>
-      </View>
+        {/* Tabs */}
+        <View style={styles.tabBar}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'export' && styles.tabButtonActive]}
+            onPress={() => setActiveTab('export')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabText, activeTab === 'export' && styles.tabTextActive]}>
+              Export & Backup
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'import' && styles.tabButtonActive]}
+            onPress={() => setActiveTab('import')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabText, activeTab === 'import' && styles.tabTextActive]}>
+              Import & Restore
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      {activeTab === 'export' ? (
-        <Card style={styles.card}>
-          <Text style={styles.cardHeader}>Export Trip "{tripName}"</Text>
-          <Text style={styles.cardSub}>
-            Enter a password to encrypt this trip. Anyone scanning or importing will need this password.
-          </Text>
+        {activeTab === 'export' ? (
+          <Card style={styles.card}>
+            <Text style={styles.cardHeader}>Export Trip "{tripName}"</Text>
+            <Text style={styles.cardSub}>
+              Enter a password to encrypt this trip. Anyone scanning or importing will need this password.
+            </Text>
 
-          <Input
-            label="Encryption Password"
-            placeholder="Enter a secret password"
-            value={password}
-            onChangeText={setPassword}
-          />
+            <Input
+              label="Encryption Password"
+              placeholder="Enter a secret password"
+              value={password}
+              onChangeText={setPassword}
+            />
 
-          <Button
-            title="Generate Encrypted QR & Data"
-            loading={loading}
-            onPress={handleGenerateBackup}
-          />
+            <Button
+              title="Generate Encrypted QR & Data"
+              loading={loading}
+              onPress={handleGenerateBackup}
+            />
 
-          {encryptedPayload ? (
-            <View style={styles.resultContainer}>
-              <Text style={styles.resultLabel}>Offline QR Code:</Text>
-              <View style={styles.qrWrapper}>
-                <QRCode
-                  value={encryptedPayload.substring(0, 300)}
-                  size={180}
-                  color={colors.text}
-                  backgroundColor="#FFFFFF"
-                />
-              </View>
-
-              <View style={styles.sectionHeaderRow}>
-                <Text style={styles.resultLabel}>Encrypted Backup String:</Text>
-                <View style={styles.actionButtonGroup}>
-                  <TouchableOpacity
-                    style={[styles.copyChip, copied && styles.copyChipSuccess]}
-                    onPress={handleCopy}
-                    activeOpacity={0.7}
-                  >
-                    {copied ? (
-                      <CheckIcon size={14} color="#15803D" style={{ marginRight: 4 }} />
-                    ) : (
-                      <CopyIcon size={14} color={colors.primaryDark} style={{ marginRight: 4 }} />
-                    )}
-                    <Text style={[styles.copyChipText, copied && styles.copyChipTextSuccess]}>
-                      {copied ? 'Copied!' : 'Copy'}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.shareChip}
-                    onPress={handleShare}
-                    activeOpacity={0.7}
-                  >
-                    <ShareIcon size={14} color={colors.secondary} style={{ marginRight: 4 }} />
-                    <Text style={styles.shareChipText}>Share</Text>
-                  </TouchableOpacity>
+            {encryptedPayload ? (
+              <View style={styles.resultContainer}>
+                <Text style={styles.resultLabel}>Offline QR Code:</Text>
+                <View style={styles.qrWrapper}>
+                  <QRCode
+                    value={encryptedPayload.substring(0, 300)}
+                    size={180}
+                    color={colors.text}
+                    backgroundColor="#FFFFFF"
+                  />
                 </View>
-              </View>
 
-              {/* Selectable text box */}
-              <View style={styles.payloadBoxContainer}>
-                <Text selectable={true} style={styles.payloadBox}>
-                  {encryptedPayload}
+                <View style={styles.sectionHeaderRow}>
+                  <Text style={styles.resultLabel}>Encrypted Backup String:</Text>
+                  <View style={styles.actionButtonGroup}>
+                    <TouchableOpacity
+                      style={[styles.copyChip, copied && styles.copyChipSuccess]}
+                      onPress={handleCopy}
+                      activeOpacity={0.65}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      {copied ? (
+                        <CheckIcon size={14} color="#15803D" style={{ marginRight: 4 }} />
+                      ) : (
+                        <CopyIcon size={14} color={colors.primaryDark} style={{ marginRight: 4 }} />
+                      )}
+                      <Text style={[styles.copyChipText, copied && styles.copyChipTextSuccess]}>
+                        {copied ? 'Copied!' : 'Copy'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.shareChip}
+                      onPress={handleShare}
+                      activeOpacity={0.65}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <ShareIcon size={14} color={colors.secondary} style={{ marginRight: 4 }} />
+                      <Text style={styles.shareChipText}>Share</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Selectable text box */}
+                <View style={styles.payloadBoxContainer}>
+                  <Text selectable={true} style={styles.payloadBox}>
+                    {encryptedPayload}
+                  </Text>
+                </View>
+
+                <View style={styles.buttonActionRow}>
+                  <Button
+                    title={copied ? 'Copied to Clipboard' : 'Copy Encrypted String'}
+                    icon={
+                      copied ? (
+                        <CheckIcon size={16} color="#FFFFFF" />
+                      ) : (
+                        <CopyIcon size={16} color={colors.primary} />
+                      )
+                    }
+                    variant={copied ? 'primary' : 'outline'}
+                    size="md"
+                    onPress={handleCopy}
+                    style={styles.fullWidthBtn}
+                  />
+                </View>
+
+                <Text style={styles.helperText}>
+                  Tap "Copy" above or select and copy this string to backup your data into a text file or notes app.
                 </Text>
               </View>
+            ) : null}
+          </Card>
+        ) : (
+          <Card style={styles.card}>
+            <Text style={styles.cardHeader}>Import / Restore Trip</Text>
+            <Text style={styles.cardSub}>
+              Paste an encrypted backup string generated from TripZen to restore or synchronize the trip.
+            </Text>
 
-              <View style={styles.buttonActionRow}>
-                <Button
-                  title={copied ? 'Copied to Clipboard' : 'Copy Encrypted String'}
-                  icon={
-                    copied ? (
-                      <CheckIcon size={16} color="#FFFFFF" />
-                    ) : (
-                      <CopyIcon size={16} color={colors.primary} />
-                    )
-                  }
-                  variant={copied ? 'primary' : 'outline'}
-                  size="md"
-                  onPress={handleCopy}
-                  style={styles.fullWidthBtn}
-                />
-              </View>
-
-              <Text style={styles.helperText}>
-                Tap "Copy" above or select and copy this string to backup your data into a text file or notes app.
-              </Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.fieldLabel}>Encrypted Backup String</Text>
+              <TouchableOpacity
+                style={styles.pasteChip}
+                onPress={handlePasteFromClipboard}
+                activeOpacity={0.65}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
+              </TouchableOpacity>
             </View>
-          ) : null}
-        </Card>
-      ) : (
-        <Card style={styles.card}>
-          <Text style={styles.cardHeader}>Import / Restore Trip</Text>
-          <Text style={styles.cardSub}>
-            Paste an encrypted backup string generated from TripZen to restore or synchronize the trip.
-          </Text>
 
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.fieldLabel}>Encrypted Backup String</Text>
-            <TouchableOpacity
-              style={styles.pasteChip}
-              onPress={handlePasteFromClipboard}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
-            </TouchableOpacity>
-          </View>
+            <Input
+              placeholder="Paste AES-256 encrypted string here..."
+              value={importPayload}
+              onChangeText={setImportPayload}
+              multiline
+              numberOfLines={4}
+              inputStyle={{ height: 85, maxHeight: 90, fontSize: 12, lineHeight: 16 }}
+            />
 
-          <Input
-            placeholder="Paste AES-256 encrypted string here..."
-            value={importPayload}
-            onChangeText={setImportPayload}
-            multiline
-            numberOfLines={4}
-          />
+            <Input
+              label="Decryption Password"
+              placeholder="Password used during export"
+              value={importPassword}
+              onChangeText={setImportPassword}
+              secureTextEntry
+            />
 
-          <Input
-            label="Decryption Password"
-            placeholder="Password used during export"
-            value={importPassword}
-            onChangeText={setImportPassword}
-            secureTextEntry
-          />
-
-          <Button
-            title="Decrypt & Import Trip"
-            loading={importLoading}
-            onPress={handleImportBackup}
-            style={{ marginTop: 12 }}
-          />
-        </Card>
-      )}
-    </ScrollView>
+            <Button
+              title="Decrypt & Import Trip"
+              loading={importLoading}
+              onPress={handleImportBackup}
+              style={{ marginTop: 12 }}
+            />
+          </Card>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

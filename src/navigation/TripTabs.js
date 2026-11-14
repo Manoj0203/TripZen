@@ -32,6 +32,7 @@ export function TripTabs({ route, navigation }) {
           <TouchableOpacity
             style={styles.backupHeaderBtn}
             onPress={() => navigation.navigate('SyncBackup', { tripId, tripName })}
+            activeOpacity={0.7}
           >
             <SyncIcon size={14} color={colors.secondary} style={{ marginRight: 5 }} />
             <Text style={styles.backupHeaderText}>Sync / QR</Text>

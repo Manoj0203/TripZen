@@ -7,6 +7,9 @@ import {
   Modal,
   Alert,
   TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { Card } from '../components/Card';
@@ -244,6 +247,7 @@ export function ParticipantsScreen({ route, navigation }) {
 
           <View style={styles.actionIconGroup}>
             <TouchableOpacity
+              activeOpacity={0.6}
               onPress={() => openEditFriend(item)}
               style={styles.smallActionBtn}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -252,6 +256,7 @@ export function ParticipantsScreen({ route, navigation }) {
             </TouchableOpacity>
 
             <TouchableOpacity
+              activeOpacity={0.6}
               onPress={() => handleDeleteFriend(item)}
               style={styles.smallActionBtn}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -275,6 +280,7 @@ export function ParticipantsScreen({ route, navigation }) {
             <Text style={styles.familyName}>{item.name}</Text>
 
             <TouchableOpacity
+              activeOpacity={0.6}
               onPress={() => openEditFamily(item)}
               style={styles.familyActionBtn}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -283,6 +289,7 @@ export function ParticipantsScreen({ route, navigation }) {
             </TouchableOpacity>
 
             <TouchableOpacity
+              activeOpacity={0.6}
               onPress={() => handleDeleteFamily(item)}
               style={styles.familyActionBtn}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -329,6 +336,7 @@ export function ParticipantsScreen({ route, navigation }) {
 
                 <View style={styles.memberActions}>
                   <TouchableOpacity
+                    activeOpacity={0.6}
                     onPress={() => openEditMember(item.id, member)}
                     style={styles.smallActionBtn}
                     hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -337,6 +345,7 @@ export function ParticipantsScreen({ route, navigation }) {
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    activeOpacity={0.6}
                     onPress={() => handleDeleteMember(member)}
                     style={styles.smallActionBtn}
                     hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -424,63 +433,74 @@ export function ParticipantsScreen({ route, navigation }) {
 
       {/* Modal for Adding & Editing Friend / Family / Member */}
       <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{getModalTitle()}</Text>
 
-            <Input
-              label={getModalInputLabel()}
-              placeholder={
-                modalMode.includes('friend')
-                  ? 'e.g. Rahul, Sneha, Vikram'
-                  : modalMode.includes('member')
-                  ? 'e.g. Aarav, Ananya'
-                  : 'e.g. Sharma Family'
-              }
-              value={nameInput}
-              onChangeText={setNameInput}
-            />
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              style={styles.modalScrollBody}
+            >
+              <Input
+                label={getModalInputLabel()}
+                placeholder={
+                  modalMode.includes('friend')
+                    ? 'e.g. Rahul, Sneha, Vikram'
+                    : modalMode.includes('member')
+                    ? 'e.g. Aarav, Ananya'
+                    : 'e.g. Sharma Family'
+                }
+                value={nameInput}
+                onChangeText={setNameInput}
+              />
 
-            {/* If adding or editing a family member, show Adult / Child toggle */}
-            {modalMode.includes('member') ? (
-              <View style={styles.typeSelectorContainer}>
-                <Text style={styles.inputLabel}>Member Category</Text>
-                <View style={styles.toggleRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.toggleButton,
-                      memberType === 'adult' && styles.toggleButtonActive,
-                    ]}
-                    onPress={() => setMemberType('adult')}
-                  >
-                    <Text
+              {/* If adding or editing a family member, show Adult / Child toggle */}
+              {modalMode.includes('member') ? (
+                <View style={styles.typeSelectorContainer}>
+                  <Text style={styles.inputLabel}>Member Category</Text>
+                  <View style={styles.toggleRow}>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
                       style={[
-                        styles.toggleText,
-                        memberType === 'adult' && styles.toggleTextActive,
+                        styles.toggleButton,
+                        memberType === 'adult' && styles.toggleButtonActive,
                       ]}
+                      onPress={() => setMemberType('adult')}
                     >
-                      Adult (1.0x share)
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.toggleButton,
-                      memberType === 'child' && styles.toggleButtonActive,
-                    ]}
-                    onPress={() => setMemberType('child')}
-                  >
-                    <Text
+                      <Text
+                        style={[
+                          styles.toggleText,
+                          memberType === 'adult' && styles.toggleTextActive,
+                        ]}
+                      >
+                        Adult (1.0x share)
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
                       style={[
-                        styles.toggleText,
-                        memberType === 'child' && styles.toggleTextActive,
+                        styles.toggleButton,
+                        memberType === 'child' && styles.toggleButtonActive,
                       ]}
+                      onPress={() => setMemberType('child')}
                     >
-                      Child (0.5x share)
-                    </Text>
-                  </TouchableOpacity>
+                      <Text
+                        style={[
+                          styles.toggleText,
+                          memberType === 'child' && styles.toggleTextActive,
+                        ]}
+                      >
+                        Child (0.5x share)
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            ) : null}
+              ) : null}
+            </ScrollView>
 
             <View style={styles.modalActions}>
               <Button
@@ -497,7 +517,7 @@ export function ParticipantsScreen({ route, navigation }) {
               />
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -690,6 +710,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
+    maxHeight: '90%',
+  },
+  modalScrollBody: {
+    flexShrink: 1,
   },
   modalTitle: {
     fontSize: 18,

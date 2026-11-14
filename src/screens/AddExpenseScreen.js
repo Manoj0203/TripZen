@@ -1,5 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { colors } from '../theme/colors';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -155,7 +164,16 @@ export function AddExpenseScreen({ route, navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
       <Text style={styles.screenTitle}>
         {isEditing ? 'Edit Expense' : 'Add New Expense'}
       </Text>
@@ -191,7 +209,7 @@ export function AddExpenseScreen({ route, navigation }) {
           return (
             <TouchableOpacity
               key={p.id}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
               style={[styles.payerChip, isSelected && styles.payerChipSelected]}
               onPress={() => setPayerFamilyId(p.id)}
             >
@@ -209,6 +227,7 @@ export function AddExpenseScreen({ route, navigation }) {
           <Text style={styles.fieldLabel}>How to Split?</Text>
           <View style={styles.toggleRow}>
             <TouchableOpacity
+              activeOpacity={0.7}
               style={[
                 styles.toggleBtn,
                 splitMode === 'weighted_members' && styles.toggleBtnActive,
@@ -225,6 +244,7 @@ export function AddExpenseScreen({ route, navigation }) {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              activeOpacity={0.7}
               style={[
                 styles.toggleBtn,
                 splitMode === 'equal_family' && styles.toggleBtnActive,
@@ -271,7 +291,8 @@ export function AddExpenseScreen({ route, navigation }) {
           textStyle={{ color: colors.danger }}
         />
       ) : null}
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

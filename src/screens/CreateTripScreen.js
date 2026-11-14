@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { colors } from '../theme/colors';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -40,83 +49,97 @@ export function CreateTripScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.screenTitle}>Create a New Trip</Text>
-      <Text style={styles.screenSubtitle}>
-        Set up your trip and choose how participants will be organized.
-      </Text>
-
-      <Input
-        label="Trip Name"
-        placeholder="e.g. Goa Vacation 2026, Ladakh Roadtrip"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <Input
-        label="Description (Optional)"
-        placeholder="Notes, destination, hotel info..."
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
-
-      <Text style={styles.sectionLabel}>Trip Participant Mode</Text>
-
-      {/* Option 1: Family Trip */}
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => setTripType('families')}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+      style={styles.keyboardContainer}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
       >
-        <Card style={[styles.typeCard, tripType === 'families' && styles.typeCardSelected]}>
-          <View style={styles.typeHeader}>
-            <View style={styles.typeIconContainer}>
-              <FamilyIcon size={24} color={tripType === 'families' ? colors.primaryDark : colors.textMuted} />
-            </View>
-            <View style={styles.typeInfo}>
-              <Text style={styles.typeTitle}>Family Trip</Text>
-              <Text style={styles.typeDescription}>
-                Participants belong to families. Adults (1.0x) and Children (0.5x) have weighted splits.
-              </Text>
-            </View>
-            <View style={[styles.radio, tripType === 'families' && styles.radioSelected]} />
-          </View>
-        </Card>
-      </TouchableOpacity>
+        <Text style={styles.screenTitle}>Create a New Trip</Text>
+        <Text style={styles.screenSubtitle}>
+          Set up your trip and choose how participants will be organized.
+        </Text>
 
-      {/* Option 2: Friends Trip */}
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => setTripType('friends')}
-      >
-        <Card style={[styles.typeCard, tripType === 'friends' && styles.typeCardSelected]}>
-          <View style={styles.typeHeader}>
-            <View style={styles.typeIconContainer}>
-              <UsersIcon size={24} color={tripType === 'friends' ? colors.primaryDark : colors.textMuted} />
-            </View>
-            <View style={styles.typeInfo}>
-              <Text style={styles.typeTitle}>Group of Friends</Text>
-              <Text style={styles.typeDescription}>
-                Direct list of friends (bachelors, colleagues, roommates). No family grouping or adult/child labels.
-              </Text>
-            </View>
-            <View style={[styles.radio, tripType === 'friends' && styles.radioSelected]} />
-          </View>
-        </Card>
-      </TouchableOpacity>
+        <Input
+          label="Trip Name"
+          placeholder="e.g. Goa Vacation 2026, Ladakh Roadtrip"
+          value={name}
+          onChangeText={setName}
+        />
 
-      <Button
-        title="Start Trip"
-        size="lg"
-        loading={loading}
-        onPress={handleCreate}
-        style={styles.createButton}
-      />
-    </ScrollView>
+        <Input
+          label="Description (Optional)"
+          placeholder="Notes, destination, hotel info..."
+          value={description}
+          onChangeText={setDescription}
+          multiline
+        />
+
+        <Text style={styles.sectionLabel}>Trip Participant Mode</Text>
+
+        {/* Option 1: Family Trip */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setTripType('families')}
+        >
+          <Card style={[styles.typeCard, tripType === 'families' && styles.typeCardSelected]}>
+            <View style={styles.typeHeader}>
+              <View style={styles.typeIconContainer}>
+                <FamilyIcon size={24} color={tripType === 'families' ? colors.primaryDark : colors.textMuted} />
+              </View>
+              <View style={styles.typeInfo}>
+                <Text style={styles.typeTitle}>Family Trip</Text>
+                <Text style={styles.typeDescription}>
+                  Participants belong to families. Adults (1.0x) and Children (0.5x) have weighted splits.
+                </Text>
+              </View>
+              <View style={[styles.radio, tripType === 'families' && styles.radioSelected]} />
+            </View>
+          </Card>
+        </TouchableOpacity>
+
+        {/* Option 2: Friends Trip */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setTripType('friends')}
+        >
+          <Card style={[styles.typeCard, tripType === 'friends' && styles.typeCardSelected]}>
+            <View style={styles.typeHeader}>
+              <View style={styles.typeIconContainer}>
+                <UsersIcon size={24} color={tripType === 'friends' ? colors.primaryDark : colors.textMuted} />
+              </View>
+              <View style={styles.typeInfo}>
+                <Text style={styles.typeTitle}>Group of Friends</Text>
+                <Text style={styles.typeDescription}>
+                  Direct list of friends (bachelors, colleagues, roommates). No family grouping or adult/child labels.
+                </Text>
+              </View>
+              <View style={[styles.radio, tripType === 'friends' && styles.radioSelected]} />
+            </View>
+          </Card>
+        </TouchableOpacity>
+
+        <Button
+          title="Start Trip"
+          size="lg"
+          loading={loading}
+          onPress={handleCreate}
+          style={styles.createButton}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
