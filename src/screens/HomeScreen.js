@@ -25,6 +25,10 @@ import {
   ArrowRightIcon,
   TripIcon,
   DownloadIcon,
+  UsersIcon,
+  ScaleIcon,
+  ShieldCheckIcon,
+  SyncIcon,
 } from '../components/Icons';
 import { getFromClipboard } from '../utils/clipboard';
 
@@ -299,39 +303,160 @@ export function HomeScreen({ navigation }) {
     <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Modern Clean Header */}
       <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>TripZen</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTitleCol}>
+            <Text style={[styles.title, { color: colors.text }]}>TripZen</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
+              Offline Group Expenses
+            </Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statusDot, { backgroundColor: colors.primary }]} />
+            <Text style={[styles.statusText, { color: colors.textMuted }]}>Offline Ready</Text>
+          </View>
+        </View>
       </View>
 
       {trips.length === 0 ? (
-        <View style={[styles.emptyContainer, { paddingBottom: insets.bottom + 32 }]}>
-          <View style={[styles.emptyIconCircle, { backgroundColor: colors.surface }]}>
-            <TripIcon size={36} color={colors.textMuted} />
-          </View>
-          <Text style={[styles.emptyTitle, { color: colors.text }]}>No trips yet</Text>
-          <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
-            Create a trip with friends or family to track expenses and settle balances offline.
-          </Text>
-          <View style={styles.emptyButtonRow}>
-            <Button
-              title="Create a Trip"
-              icon={<PlusIcon size={14} color="#FFFFFF" />}
-              style={styles.emptyButton}
-              onPress={() => navigation.navigate('CreateTrip')}
+        <ScrollView
+          style={styles.emptyScrollView}
+          contentContainerStyle={[
+            styles.emptyScrollContent,
+            { paddingBottom: Math.max(insets.bottom, 12) + 90 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
             />
-            <Button
-              title="Import Backup"
-              icon={<DownloadIcon size={14} color={colors.primary} />}
-              variant="outline"
-              style={styles.emptyButton}
-              onPress={() => setImportModalVisible(true)}
-            />
+          }
+        >
+          {/* Hero Welcome Card */}
+          <Card style={[styles.heroCard, { borderColor: colors.border }]}>
+            <View style={styles.heroHeader}>
+              <View style={[styles.heroIconCircle, { backgroundColor: colors.primaryLight }]}>
+                <TripIcon size={26} color={colors.primaryDark} />
+              </View>
+              <View style={[styles.heroBadge, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.heroBadgeText, { color: colors.primaryDark }]}>Get Started</Text>
+              </View>
+            </View>
+
+            <Text style={[styles.heroTitle, { color: colors.text }]}>
+              Plan & Split With Peace of Mind
+            </Text>
+            <Text style={[styles.heroSubtitle, { color: colors.textMuted }]}>
+              Track joint costs on trips, split fairly between friends or families, and settle debts completely offline.
+            </Text>
+
+            <View style={styles.heroBtnRow}>
+              <Button
+                title="Create a Trip"
+                icon={<PlusIcon size={14} color="#FFFFFF" />}
+                style={styles.heroBtn}
+                onPress={() => navigation.navigate('CreateTrip')}
+              />
+              <Button
+                title="Import Backup"
+                icon={<DownloadIcon size={14} color={colors.primary} />}
+                variant="outline"
+                style={styles.heroBtn}
+                onPress={() => setImportModalVisible(true)}
+              />
+            </View>
+          </Card>
+
+          {/* How It Works Guide Section */}
+          <View style={styles.featuresSection}>
+            <Text style={[styles.sectionHeading, { color: colors.text }]}>
+              How TripZen Works
+            </Text>
+
+            <Card style={styles.featureCard}>
+              <View style={[styles.featureIconBox, { backgroundColor: colors.primaryLight }]}>
+                <UsersIcon size={20} color={colors.primaryDark} />
+              </View>
+              <View style={styles.featureTextBox}>
+                <Text style={[styles.featureTitle, { color: colors.text }]}>
+                  Families & Friends Split
+                </Text>
+                <Text style={[styles.featureDesc, { color: colors.textMuted }]}>
+                  Split equally with friends or use adult (1.0x) and child (0.5x) family weights.
+                </Text>
+              </View>
+            </Card>
+
+            <Card style={styles.featureCard}>
+              <View style={[styles.featureIconBox, { backgroundColor: colors.secondaryLight }]}>
+                <ScaleIcon size={20} color={colors.secondary} />
+              </View>
+              <View style={styles.featureTextBox}>
+                <Text style={[styles.featureTitle, { color: colors.text }]}>
+                  Smart Debt Settlement
+                </Text>
+                <Text style={[styles.featureDesc, { color: colors.textMuted }]}>
+                  Automatically calculates the minimum transactions needed to clear all balances.
+                </Text>
+              </View>
+            </Card>
+
+            <Card style={styles.featureCard}>
+              <View style={[styles.featureIconBox, { backgroundColor: colors.surface }]}>
+                <ShieldCheckIcon size={20} color={colors.primary} />
+              </View>
+              <View style={styles.featureTextBox}>
+                <Text style={[styles.featureTitle, { color: colors.text }]}>
+                  100% Offline & Encrypted
+                </Text>
+                <Text style={[styles.featureDesc, { color: colors.textMuted }]}>
+                  No cloud, no accounts, no ads. Share or backup trips offline with AES-256 encryption.
+                </Text>
+              </View>
+            </Card>
           </View>
-        </View>
+        </ScrollView>
       ) : (
         <FlatList
           data={trips}
           keyExtractor={item => item.id}
           renderItem={renderTripItem}
+          ListHeaderComponent={
+            <View style={styles.listHeaderRow}>
+              <View style={styles.listHeaderTitleCol}>
+                <Text style={[styles.listHeaderTitle, { color: colors.text }]}>Your Trips</Text>
+                <View style={[styles.tripCountPill, { backgroundColor: colors.primaryLight }]}>
+                  <Text style={[styles.tripCountText, { color: colors.primaryDark }]}>
+                    {`${trips.length} ${trips.length === 1 ? 'trip' : 'trips'}`}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[styles.importHeaderChip, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={() => setImportModalVisible(true)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <DownloadIcon size={13} color={colors.secondary} style={{ marginRight: 5 }} />
+                <Text style={[styles.importHeaderText, { color: colors.secondary }]}>Import</Text>
+              </TouchableOpacity>
+            </View>
+          }
+          ListFooterComponent={
+            trips.length === 1 ? (
+              <View style={[styles.singleTripTipBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.tipIconRow}>
+                  <SyncIcon size={14} color={colors.primary} style={{ marginRight: 6 }} />
+                  <Text style={[styles.tipTitle, { color: colors.text }]}>Quick Tip</Text>
+                </View>
+                <Text style={[styles.tipDesc, { color: colors.textMuted }]}>
+                  Tap on your trip above to log expenses, manage participants, or view simplified settlement payments.
+                </Text>
+              </View>
+            ) : null
+          }
           contentContainerStyle={[styles.list, { paddingBottom: 88 + insets.bottom }]}
           refreshControl={
             <RefreshControl
@@ -513,10 +638,41 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: 1,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitleCol: {
+    flex: 1,
+  },
   title: {
     fontSize: 22,
     fontWeight: '800',
     letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   fab: {
     position: 'absolute',
@@ -600,37 +756,151 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  emptyContainer: {
+  emptyScrollView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
   },
-  emptyIconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
+  emptyScrollContent: {
+    paddingTop: 4,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+  heroCard: {
+    padding: 20,
+    marginHorizontal: 16,
+    marginTop: 16,
     marginBottom: 8,
   },
-  emptySubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  emptyButtonRow: {
+  heroHeader: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
   },
-  emptyButton: {
-    minWidth: 130,
+  heroIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  heroTitle: {
+    fontSize: 19,
+    fontWeight: '800',
+    lineHeight: 25,
+    marginBottom: 8,
+  },
+  heroSubtitle: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 18,
+  },
+  heroBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  heroBtn: {
+    flex: 1,
+  },
+  featuresSection: {
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  sectionHeading: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+    marginTop: 6,
+  },
+  featureCard: {
+    padding: 14,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  featureIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  featureTextBox: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  featureDesc: {
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  listHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  listHeaderTitleCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  listHeaderTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  tripCountPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  tripCountText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  importHeaderChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  importHeaderText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  singleTripTipBox: {
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 6,
+  },
+  tipIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  tipTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  tipDesc: {
+    fontSize: 12,
+    lineHeight: 18,
   },
   modalOverlay: {
     flex: 1,

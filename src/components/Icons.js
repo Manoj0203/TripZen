@@ -263,3 +263,12 @@ export function ChevronLeftIcon({ size = 22, color = '#18181B', strokeWidth = 2.
     </Svg>
   );
 }
+
+export function ShieldCheckIcon({ size = 20, color = '#10B981', strokeWidth = 2, style }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <Polyline points="9 12 11 14 15 10" />
+    </Svg>
+  );
+}
