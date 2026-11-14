@@ -364,7 +364,7 @@ export function HomeScreen({ navigation }) {
       <Modal
         visible={editModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setEditModalVisible(false)}
       >
         <KeyboardAvoidingView
@@ -420,7 +420,7 @@ export function HomeScreen({ navigation }) {
       <Modal
         visible={importModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setImportModalVisible(false)}
       >
         <KeyboardAvoidingView

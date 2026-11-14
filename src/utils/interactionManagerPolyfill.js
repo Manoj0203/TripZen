@@ -9,20 +9,14 @@ const polyfillInteractionManager = {
   runAfterInteractions(task) {
     let handle;
     const promise = new Promise(resolve => {
-      handle =
-        typeof requestIdleCallback === 'function'
-          ? requestIdleCallback(() => resolve(task ? task() : undefined))
-          : setTimeout(() => resolve(task ? task() : undefined), 0);
+      // Execute immediately on the next tick to prevent idle callback stalls
+      handle = setTimeout(() => resolve(task ? task() : undefined), 0);
     });
     return {
       then: (...args) => promise.then(...args),
       done: (...args) => (promise.done ? promise.done(...args) : promise.then(...args)),
       cancel: () => {
-        if (typeof cancelIdleCallback === 'function') {
-          cancelIdleCallback(handle);
-        } else {
-          clearTimeout(handle);
-        }
+        clearTimeout(handle);
       },
     };
   },

@@ -455,7 +455,7 @@ export function ParticipantsScreen({ route, navigation }) {
       />
 
       {/* Modal for Adding & Editing Friend / Family / Member */}
-      <Modal visible={modalVisible} transparent animationType="slide">
+      <Modal visible={modalVisible} transparent animationType="fade">
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.modalOverlay}

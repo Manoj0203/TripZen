@@ -109,11 +109,11 @@ export function CustomAlertModal({
       backdropColor="#000000"
       animationIn="zoomIn"
       animationOut="zoomOut"
-      animationInTiming={220}
-      animationOutTiming={180}
+      animationInTiming={160}
+      animationOutTiming={120}
       backdropTransitionOutTiming={0}
       useNativeDriver
-      hideModalContentWhileAnimating
+      useNativeDriverForBackdrop
       style={styles.modal}
     >
       <View

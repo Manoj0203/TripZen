@@ -1,5 +1,5 @@
 import { generateUUID as uuidv4 } from '../utils/uuid';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { getDb } from '../db/client';
 import {
   trips,
@@ -211,14 +211,31 @@ export async function deleteSettlement(settlementId) {
 export async function getSettlementDashboard(tripId) {
   const db = getDb();
   const rawExpenses = await db.select().from(expenses).where(eq(expenses.tripId, tripId));
-  const rawSplits = await db.select().from(expenseSplits);
+  const expenseIds = rawExpenses.map(e => e.id);
+
+  let rawSplits = [];
+  if (expenseIds.length > 0) {
+    rawSplits = await db
+      .select()
+      .from(expenseSplits)
+      .where(inArray(expenseSplits.expenseId, expenseIds));
+  }
+
   const recordedSettlements = await db.select().from(settlements).where(eq(settlements.tripId, tripId));
 
   // Build expense + splits structure
+  const splitsByExpenseId = new Map();
+  for (const s of rawSplits) {
+    if (!splitsByExpenseId.has(s.expenseId)) {
+      splitsByExpenseId.set(s.expenseId, []);
+    }
+    splitsByExpenseId.get(s.expenseId).push(s);
+  }
+
   const expenseMap = rawExpenses.map(e => ({
     payerFamilyId: e.payerFamilyId,
     amountPaise: e.amountPaise,
-    splits: rawSplits.filter(s => s.expenseId === e.id),
+    splits: splitsByExpenseId.get(e.id) || [],
   }));
 
   const netBalances = computeNetBalances(expenseMap);
