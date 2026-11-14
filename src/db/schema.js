@@ -256,3 +256,13 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
     references: [trips.id],
   }),
 }));
+
+/**
+ * 10. App Settings Table
+ * Persistent key-value store for user preferences and configuration.
+ */
+export const appSettings = sqliteTable('app_settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+});

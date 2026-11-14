@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { createTrip } from '../services/tripService';
+import { getSetting } from '../services/settingsService';
 import { FamilyIcon, UsersIcon, DownloadIcon } from '../components/Icons';
 
 export function CreateTripScreen({ navigation }) {
@@ -26,6 +27,20 @@ export function CreateTripScreen({ navigation }) {
   const [description, setDescription] = useState('');
   const [tripType, setTripType] = useState('families'); // 'families' | 'friends'
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    getSetting('defaultTripType', 'families')
+      .then((type) => {
+        if (isMounted && (type === 'families' || type === 'friends')) {
+          setTripType(type);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleCreate = async () => {
     if (!name.trim()) {

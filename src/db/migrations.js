@@ -99,6 +99,13 @@ export const INITIAL_SCHEMA_STATEMENTS = [
     timestamp INTEGER NOT NULL
   );`,
 
+  // 10. App Settings Table
+  `CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );`,
+
   // Performance Indexes
   'CREATE INDEX IF NOT EXISTS idx_trip_families_trip ON trip_families(trip_id);',
   'CREATE INDEX IF NOT EXISTS idx_trip_members_trip ON trip_members(trip_id);',
@@ -122,6 +129,17 @@ export const MIGRATIONS = [
     name: '0002_add_trip_type',
     statements: [
       "ALTER TABLE trips ADD COLUMN trip_type TEXT NOT NULL DEFAULT 'families';",
+    ],
+  },
+  {
+    version: 3,
+    name: '0003_add_app_settings',
+    statements: [
+      `CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY NOT NULL,
+        value TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
     ],
   },
 ];

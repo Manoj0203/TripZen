@@ -28,6 +28,7 @@ import {
   updateFriend,
   deleteFriend,
 } from '../services/tripService';
+import { getSetting } from '../services/settingsService';
 import {
   UserIcon,
   FamilyIcon,
@@ -54,6 +55,13 @@ export function ParticipantsScreen({ route, navigation }) {
   const [activeFamilyId, setActiveFamilyId] = useState(null); // when adding/editing member
   const [editingTargetId, setEditingTargetId] = useState(null); // familyId or memberId being edited
   const [saving, setSaving] = useState(false);
+  const [childWeightSetting, setChildWeightSetting] = useState(50);
+
+  useEffect(() => {
+    getSetting('defaultChildWeight', 50)
+      .then((w) => setChildWeightSetting(Number(w) || 50))
+      .catch(() => {});
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
@@ -214,7 +222,7 @@ export function ParticipantsScreen({ route, navigation }) {
       } else if (modalMode === 'edit_family') {
         await updateFamily(editingTargetId, { name: nameInput.trim() });
       } else if (modalMode === 'add_member') {
-        const weight = memberType === 'child' ? 50 : 100;
+        const weight = memberType === 'child' ? childWeightSetting : 100;
         await addMember({
           tripId,
           familyId: activeFamilyId,
@@ -223,7 +231,7 @@ export function ParticipantsScreen({ route, navigation }) {
           defaultWeight: weight,
         });
       } else if (modalMode === 'edit_member') {
-        const weight = memberType === 'child' ? 50 : 100;
+        const weight = memberType === 'child' ? childWeightSetting : 100;
         await updateMember(editingTargetId, {
           name: nameInput.trim(),
           memberType,

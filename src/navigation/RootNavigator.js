@@ -5,6 +5,7 @@ import { CreateTripScreen } from '../screens/CreateTripScreen';
 import { ImportTripScreen } from '../screens/ImportTripScreen';
 import { AddExpenseScreen } from '../screens/AddExpenseScreen';
 import { SyncBackupModal } from '../screens/SyncBackupModal';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { TripTabs } from './TripTabs';
 import { useTheme } from '../theme/ThemeContext';
 
@@ -60,6 +61,11 @@ export function RootNavigator() {
         name="SyncBackup"
         component={SyncBackupModal}
         options={{ title: 'Offline Backup', presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ title: 'Settings' }}
       />
     </Stack.Navigator>
   );

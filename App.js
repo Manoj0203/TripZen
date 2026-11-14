@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { initDatabase } from './src/db/client';
+import { getSetting } from './src/services/settingsService';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AlertProvider } from './src/context/AlertContext';
 
@@ -39,12 +40,22 @@ function MainApp() {
 
 function App() {
   const [dbReady, setDbReady] = useState(false);
+  const [initialTheme, setInitialTheme] = useState('system');
   const [error, setError] = useState(null);
 
   useEffect(() => {
     try {
       initDatabase();
-      setDbReady(true);
+      getSetting('theme', 'system')
+        .then((saved) => {
+          if (saved && (saved === 'light' || saved === 'dark' || saved === 'system')) {
+            setInitialTheme(saved);
+          }
+          setDbReady(true);
+        })
+        .catch(() => {
+          setDbReady(true);
+        });
     } catch (e) {
       console.error('Failed to initialize database:', e);
       setError(e.message);
@@ -70,7 +81,7 @@ function App() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
+      <ThemeProvider initialTheme={initialTheme}>
         <AlertProvider>
           <MainApp />
         </AlertProvider>

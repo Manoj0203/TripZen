@@ -29,6 +29,7 @@ import {
   ScaleIcon,
   ShieldCheckIcon,
   SyncIcon,
+  SettingsIcon,
 } from '../components/Icons';
 import { getFromClipboard } from '../utils/clipboard';
 
@@ -310,9 +311,19 @@ export function HomeScreen({ navigation }) {
               Offline Group Expenses
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={[styles.statusDot, { backgroundColor: colors.primary }]} />
-            <Text style={[styles.statusText, { color: colors.textMuted }]}>Offline Ready</Text>
+          <View style={styles.headerRightGroup}>
+            <View style={[styles.statusBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[styles.statusDot, { backgroundColor: colors.primary }]} />
+              <Text style={[styles.statusText, { color: colors.textMuted }]}>Offline</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.settingsBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => navigation.navigate('Settings')}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <SettingsIcon size={18} color={colors.text} />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -673,6 +684,18 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: '700',
+  },
+  headerRightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  settingsBtn: {
+    padding: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   fab: {
     position: 'absolute',

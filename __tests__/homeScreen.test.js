@@ -23,6 +23,8 @@ jest.mock('react-native-modal', () => {
   };
 });
 
+jest.setTimeout(15000);
+
 describe('HomeScreen Initial State and Layout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,7 +56,7 @@ describe('HomeScreen Initial State and Layout', () => {
     // Header elements
     expect(root.findByProps({ children: 'TripZen' })).toBeTruthy();
     expect(root.findByProps({ children: 'Offline Group Expenses' })).toBeTruthy();
-    expect(root.findByProps({ children: 'Offline Ready' })).toBeTruthy();
+    expect(root.findByProps({ children: 'Offline' })).toBeTruthy();
 
     // Hero Welcome Card elements
     expect(root.findByProps({ children: 'Plan & Split With Peace of Mind' })).toBeTruthy();

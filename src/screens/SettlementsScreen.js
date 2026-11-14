@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+  Share,
+  Modal,
+  Platform,
+} from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
@@ -10,8 +20,18 @@ import {
   getParticipants,
   deleteSettlement,
 } from '../services/tripService';
+import { generateTripSummaryDoc } from '../services/settingsService';
+import { copyToClipboard } from '../utils/clipboard';
 import { formatPaiseToRupees } from '../logic/currencyFormatter';
-import { CheckCircleIcon, ArrowRightSimple, TrashIcon } from '../components/Icons';
+import {
+  CheckCircleIcon,
+  ArrowRightSimple,
+  TrashIcon,
+  FileTextIcon,
+  ShareIcon,
+  CopyIcon,
+  CheckIcon,
+} from '../components/Icons';
 
 export function SettlementsScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
@@ -26,6 +46,52 @@ export function SettlementsScreen({ route, navigation }) {
   });
   const [participants, setParticipants] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Summary Doc State
+  const [docModalVisible, setDocModalVisible] = useState(false);
+  const [summaryDocText, setSummaryDocText] = useState('');
+  const [docLoading, setDocLoading] = useState(false);
+  const [copiedDoc, setCopiedDoc] = useState(false);
+
+  const handleOpenSummaryDoc = async () => {
+    setDocLoading(true);
+    setCopiedDoc(false);
+    try {
+      const doc = await generateTripSummaryDoc(tripId, route.params?.tripName || 'Trip');
+      setSummaryDocText(doc);
+      setDocModalVisible(true);
+    } catch (e) {
+      console.error(e);
+      showAlert({
+        title: 'Error',
+        message: 'Could not generate summary document.',
+        type: 'danger',
+      });
+    } finally {
+      setDocLoading(false);
+    }
+  };
+
+  const handleShareDoc = async () => {
+    if (!summaryDocText) return;
+    try {
+      await Share.share({
+        title: `${route.params?.tripName || 'Trip'}_Summary.txt`,
+        message: summaryDocText,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCopyDoc = async () => {
+    if (!summaryDocText) return;
+    const ok = await copyToClipboard(summaryDocText);
+    if (ok) {
+      setCopiedDoc(true);
+      setTimeout(() => setCopiedDoc(false), 2500);
+    }
+  };
 
   const loadData = useCallback(async () => {
     try {
@@ -142,9 +208,27 @@ export function SettlementsScreen({ route, navigation }) {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.content}
+    <View style={[styles.mainWrapper, { backgroundColor: colors.background }]}>
+      {/* Top Action Bar for Exporting / Sharing Summary Doc */}
+      <View style={[styles.topActionBar, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
+        <View style={styles.topActionTextCol}>
+          <Text style={[styles.topActionTitle, { color: colors.text }]}>Summary & Settlement</Text>
+          <Text style={[styles.topActionSub, { color: colors.textMuted }]}>
+            Export summary doc for WhatsApp or notes
+          </Text>
+        </View>
+        <Button
+          title="Share Doc"
+          icon={<FileTextIcon size={14} color="#FFFFFF" />}
+          size="sm"
+          loading={docLoading}
+          onPress={handleOpenSummaryDoc}
+        />
+      </View>
+
+      <ScrollView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -315,10 +399,79 @@ export function SettlementsScreen({ route, navigation }) {
         </>
       ) : null}
     </ScrollView>
+
+      {/* Summary Document Modal */}
+      <Modal
+        visible={docModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDocModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Trip Settlement Summary</Text>
+            <Text style={[styles.modalSubtitle, { color: colors.textMuted }]}>
+              Formatted text doc ready to share to WhatsApp or save as notes.
+            </Text>
+
+            <ScrollView
+              style={[styles.docPreviewScroll, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              showsVerticalScrollIndicator={true}
+            >
+              <Text style={[styles.docText, { color: colors.text }]}>{summaryDocText}</Text>
+            </ScrollView>
+
+            <View style={styles.docBtnGroup}>
+              <Button
+                title="Share via App / WhatsApp"
+                icon={<ShareIcon size={16} color="#FFFFFF" />}
+                onPress={handleShareDoc}
+                style={{ marginBottom: 10 }}
+              />
+              <Button
+                title={copiedDoc ? 'Copied to Clipboard!' : 'Copy to Clipboard'}
+                icon={copiedDoc ? <CheckIcon size={16} color={colors.primary} /> : <CopyIcon size={16} color={colors.primary} />}
+                variant="outline"
+                onPress={handleCopyDoc}
+                style={{ marginBottom: 10 }}
+              />
+              <Button
+                title="Close"
+                variant="outline"
+                onPress={() => setDocModalVisible(false)}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainWrapper: {
+    flex: 1,
+  },
+  topActionBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  topActionTextCol: {
+    flex: 1,
+    marginRight: 10,
+  },
+  topActionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  topActionSub: {
+    fontSize: 11,
+    marginTop: 2,
+  },
   container: {
     flex: 1,
   },
@@ -458,5 +611,45 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    maxWidth: 480,
+    maxHeight: '90%',
+    borderWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 19,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  docPreviewScroll: {
+    maxHeight: 280,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  docText: {
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    lineHeight: 17,
+  },
+  docBtnGroup: {
+    marginTop: 4,
   },
 });

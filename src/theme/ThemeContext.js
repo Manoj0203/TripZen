@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { lightColors, darkColors } from './colors';
+import { getSetting, setSetting } from '../services/settingsService';
 
 const ThemeContext = createContext({
   theme: 'system', // 'system' | 'light' | 'dark'
@@ -10,9 +11,15 @@ const ThemeContext = createContext({
   toggleTheme: () => {},
 });
 
-export function ThemeProvider({ children }) {
+export function ThemeProvider({ children, initialTheme = 'system' }) {
   const systemColorScheme = useColorScheme();
-  const [userTheme, setUserTheme] = useState('system');
+  const [userTheme, setUserTheme] = useState(initialTheme);
+
+  useEffect(() => {
+    if (initialTheme && initialTheme !== userTheme) {
+      setUserTheme(initialTheme);
+    }
+  }, [initialTheme]);
 
   const isDark = useMemo(() => {
     if (userTheme === 'light') return false;
@@ -24,10 +31,17 @@ export function ThemeProvider({ children }) {
     return isDark ? darkColors : lightColors;
   }, [isDark]);
 
+  const updateTheme = (newTheme) => {
+    setUserTheme(newTheme);
+    setSetting('theme', newTheme).catch(() => {});
+  };
+
   const toggleTheme = () => {
-    setUserTheme(prev => {
+    setUserTheme((prev) => {
       const current = prev === 'system' ? (systemColorScheme === 'dark' ? 'dark' : 'light') : prev;
-      return current === 'dark' ? 'light' : 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      setSetting('theme', next).catch(() => {});
+      return next;
     });
   };
 
@@ -36,7 +50,7 @@ export function ThemeProvider({ children }) {
       theme: userTheme,
       isDark,
       colors: activeColors,
-      setTheme: setUserTheme,
+      setTheme: updateTheme,
       toggleTheme,
     }),
     [userTheme, isDark, activeColors]
