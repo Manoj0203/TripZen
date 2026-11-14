@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   RefreshControl,
   Modal,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
+import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -24,10 +24,16 @@ import {
   ArrowRightIcon,
   TripIcon,
   DownloadIcon,
+  ScaleIcon,
+  MoonIcon,
+  SunIcon,
 } from '../components/Icons';
 import { getFromClipboard } from '../utils/clipboard';
 
 export function HomeScreen({ navigation }) {
+  const { colors, isDark, toggleTheme } = useTheme();
+  const { showAlert } = useAlert();
+
   const [trips, setTrips] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -80,7 +86,11 @@ export function HomeScreen({ navigation }) {
 
   const handleSaveEdit = async () => {
     if (!editName.trim()) {
-      Alert.alert('Required', 'Please enter a trip name.');
+      showAlert({
+        title: 'Required',
+        message: 'Please enter a trip name.',
+        type: 'warning',
+      });
       return;
     }
 
@@ -93,35 +103,44 @@ export function HomeScreen({ navigation }) {
       setEditModalVisible(false);
       setEditingTripId(null);
       await loadTrips();
+      showAlert({
+        title: 'Updated',
+        message: 'Trip details updated successfully.',
+        type: 'success',
+      });
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to update trip.');
+      showAlert({
+        title: 'Error',
+        message: 'Failed to update trip.',
+        type: 'danger',
+      });
     } finally {
       setSavingEdit(false);
     }
   };
 
   const handleDeleteTrip = (item) => {
-    Alert.alert(
-      'Delete Trip',
-      `Are you sure you want to delete "${item.name}"? All associated expenses, splits, and participants will be deleted. This cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteTrip(item.id);
-              await loadTrips();
-            } catch (e) {
-              console.error(e);
-              Alert.alert('Error', 'Failed to delete trip.');
-            }
-          },
-        },
-      ]
-    );
+    showAlert({
+      title: 'Delete Trip',
+      message: `Are you sure you want to delete "${item.name}"? All associated expenses, splits, and participants will be deleted. This cannot be undone.`,
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await deleteTrip(item.id);
+          await loadTrips();
+        } catch (e) {
+          console.error(e);
+          showAlert({
+            title: 'Error',
+            message: 'Failed to delete trip.',
+            type: 'danger',
+          });
+        }
+      },
+    });
   };
 
   const handlePasteFromClipboard = async () => {
@@ -130,7 +149,11 @@ export function HomeScreen({ navigation }) {
       if (content) {
         setImportPayload(content);
       } else {
-        Alert.alert('Clipboard Empty', 'No text found in clipboard.');
+        showAlert({
+          title: 'Clipboard Empty',
+          message: 'No text found in clipboard.',
+          type: 'info',
+        });
       }
     } catch (e) {
       console.error(e);
@@ -139,11 +162,19 @@ export function HomeScreen({ navigation }) {
 
   const handleImportTrip = async () => {
     if (!importPayload.trim()) {
-      Alert.alert('Required', 'Please paste the encrypted trip backup string.');
+      showAlert({
+        title: 'Required',
+        message: 'Please paste the encrypted trip backup string.',
+        type: 'warning',
+      });
       return;
     }
     if (!importPassword.trim()) {
-      Alert.alert('Required', 'Please enter the encryption password for this backup.');
+      showAlert({
+        title: 'Required',
+        message: 'Please enter the encryption password for this backup.',
+        type: 'warning',
+      });
       return;
     }
 
@@ -154,10 +185,18 @@ export function HomeScreen({ navigation }) {
       setImportPayload('');
       setImportPassword('');
       await loadTrips();
-      Alert.alert('Success', `Trip "${imported?.name || 'Trip'}" imported successfully!`);
+      showAlert({
+        title: 'Success',
+        message: `Trip "${imported?.name || 'Trip'}" imported successfully!`,
+        type: 'success',
+      });
     } catch (e) {
       console.error(e);
-      Alert.alert('Import Failed', 'Invalid backup string or incorrect password.');
+      showAlert({
+        title: 'Import Failed',
+        message: 'Invalid backup string or incorrect password.',
+        type: 'danger',
+      });
     } finally {
       setImporting(false);
     }
@@ -179,12 +218,21 @@ export function HomeScreen({ navigation }) {
           }
         >
           <View style={styles.cardHeader}>
-            <Text style={styles.tripName}>{item.name}</Text>
-            <View style={[styles.badge, isFriends ? styles.badgeFriends : styles.badgeFamily]}>
+            <Text style={[styles.tripName, { color: colors.text }]}>{item.name}</Text>
+            <View
+              style={[
+                styles.badge,
+                {
+                  backgroundColor: isFriends ? colors.secondaryLight : colors.primaryLight,
+                },
+              ]}
+            >
               <Text
                 style={[
                   styles.badgeText,
-                  isFriends ? styles.badgeTextFriends : styles.badgeTextFamily,
+                  {
+                    color: isFriends ? colors.secondary : colors.primaryDark,
+                  },
                 ]}
               >
                 {isFriends ? 'Friends Trip' : 'Family Trip'}
@@ -193,13 +241,15 @@ export function HomeScreen({ navigation }) {
           </View>
 
           {item.description ? (
-            <Text style={styles.description}>{item.description}</Text>
+            <Text style={[styles.description, { color: colors.textMuted }]}>
+              {item.description}
+            </Text>
           ) : null}
         </TouchableOpacity>
 
         {/* Action Footer - Sibling row outside navigation touchable */}
-        <View style={styles.cardFooter}>
-          <Text style={styles.footerDate}>
+        <View style={[styles.cardFooter, { borderTopColor: colors.border }]}>
+          <Text style={[styles.footerDate, { color: colors.textMuted }]}>
             Created {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently'}
           </Text>
 
@@ -208,7 +258,7 @@ export function HomeScreen({ navigation }) {
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={() => handleOpenEdit(item)}
-              style={styles.actionIconBtn}
+              style={[styles.actionIconBtn, { backgroundColor: colors.surface }]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <EditIcon size={16} color={colors.textMuted} />
@@ -218,7 +268,7 @@ export function HomeScreen({ navigation }) {
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={() => handleDeleteTrip(item)}
-              style={styles.actionIconBtn}
+              style={[styles.actionIconBtn, { backgroundColor: colors.surface }]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <TrashIcon size={16} color={colors.danger} />
@@ -237,7 +287,7 @@ export function HomeScreen({ navigation }) {
               }
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={styles.arrowText}>View</Text>
+              <Text style={[styles.arrowText, { color: colors.primary }]}>View</Text>
               <ArrowRightIcon size={14} color={colors.primary} style={{ marginLeft: 2 }} />
             </TouchableOpacity>
           </View>
@@ -247,22 +297,46 @@ export function HomeScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.title}>TripZen</Text>
-          <Text style={styles.subtitle}>Offline Group Expense Manager</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Modern Redesigned Header UI */}
+      <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
+        <View style={styles.brandRow}>
+          <View style={[styles.brandLogoCircle, { backgroundColor: colors.primaryLight }]}>
+            <ScaleIcon size={20} color={colors.primaryDark} strokeWidth={2.4} />
+          </View>
+          <View style={styles.headerTitleContainer}>
+            <Text style={[styles.title, { color: colors.text }]}>TripZen</Text>
+            <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+              Offline Group Expenses
+            </Text>
+          </View>
         </View>
+
         <View style={styles.headerActions}>
+          {/* Theme Switcher Button */}
+          <TouchableOpacity
+            style={[styles.themeToggleBtn, { backgroundColor: colors.surface }]}
+            onPress={toggleTheme}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            {isDark ? (
+              <SunIcon size={18} color="#FBBF24" />
+            ) : (
+              <MoonIcon size={18} color={colors.textMuted} />
+            )}
+          </TouchableOpacity>
+
           <Button
             title="Import"
+            icon={<DownloadIcon size={14} color={colors.primary} />}
             variant="outline"
             size="sm"
             style={styles.importHeaderBtn}
             onPress={() => setImportModalVisible(true)}
           />
           <Button
-            title="New Trip"
+            title="New"
             icon={<PlusIcon size={14} color="#FFFFFF" />}
             size="sm"
             onPress={() => navigation.navigate('CreateTrip')}
@@ -272,9 +346,9 @@ export function HomeScreen({ navigation }) {
 
       {trips.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <TripIcon size={56} color="#CBD5E1" style={styles.emptyIcon} />
-          <Text style={styles.emptyTitle}>No Trips Yet</Text>
-          <Text style={styles.emptySubtitle}>
+          <TripIcon size={56} color={colors.textMuted} style={styles.emptyIcon} />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>No Trips Yet</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
             Create your first trip with families or friends, or import an encrypted backup.
           </Text>
           <View style={styles.emptyButtonRow}>
@@ -286,6 +360,7 @@ export function HomeScreen({ navigation }) {
             />
             <Button
               title="Import Trip"
+              icon={<DownloadIcon size={14} color={colors.primary} />}
               variant="outline"
               style={styles.emptyButton}
               onPress={() => setImportModalVisible(true)}
@@ -298,7 +373,14 @@ export function HomeScreen({ navigation }) {
           keyExtractor={item => item.id}
           renderItem={renderTripItem}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         />
       )}
 
@@ -313,9 +395,11 @@ export function HomeScreen({ navigation }) {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.modalOverlay}
         >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Trip</Text>
-            <Text style={styles.modalSubtitle}>Update trip details</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Edit Trip</Text>
+            <Text style={[styles.modalSubtitle, { color: colors.textMuted }]}>
+              Update trip details
+            </Text>
 
             <ScrollView
               showsVerticalScrollIndicator={false}
@@ -338,7 +422,7 @@ export function HomeScreen({ navigation }) {
               />
             </ScrollView>
 
-            <View style={styles.modalButtonRow}>
+            <View style={[styles.modalButtonRow, { borderTopColor: colors.border }]}>
               <Button
                 title="Cancel"
                 variant="outline"
@@ -367,9 +451,9 @@ export function HomeScreen({ navigation }) {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.modalOverlay}
         >
-          <View style={styles.importModalContent}>
-            <Text style={styles.modalTitle}>Import Trip</Text>
-            <Text style={styles.modalSubtitle}>
+          <View style={[styles.importModalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Import Trip</Text>
+            <Text style={[styles.modalSubtitle, { color: colors.textMuted }]}>
               Paste the encrypted trip backup string and enter the password used to protect it.
             </Text>
 
@@ -380,14 +464,18 @@ export function HomeScreen({ navigation }) {
               keyboardShouldPersistTaps="handled"
             >
               <View style={styles.inputHeaderRow}>
-                <Text style={styles.inputLabel}>Encrypted Backup String</Text>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>
+                  Encrypted Backup String
+                </Text>
                 <TouchableOpacity
-                  style={styles.pasteChip}
+                  style={[styles.pasteChip, { backgroundColor: colors.surface }]}
                   onPress={handlePasteFromClipboard}
                   activeOpacity={0.65}
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
-                  <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
+                  <Text style={[styles.pasteChipText, { color: colors.secondary }]}>
+                    Paste from Clipboard
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -410,7 +498,7 @@ export function HomeScreen({ navigation }) {
               />
 
               {/* Action Buttons inside scroll body so keyboard never hides or drops clicks */}
-              <View style={styles.modalButtonRow}>
+              <View style={[styles.modalButtonRow, { borderTopColor: colors.border }]}>
                 <Button
                   title="Cancel"
                   variant="outline"
@@ -440,22 +528,42 @@ export function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 48 : 20,
     paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    marginRight: 10,
+  },
+  brandLogoCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
   },
   headerTitleContainer: {
     flexShrink: 1,
-    marginRight: 12,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 1,
   },
   headerActions: {
     flexDirection: 'row',
@@ -464,18 +572,14 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     zIndex: 10,
   },
+  themeToggleBtn: {
+    padding: 8,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   importHeaderBtn: {
     marginRight: 2,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.primaryDark,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: colors.textMuted,
-    marginTop: 2,
   },
   list: {
     padding: 16,
@@ -493,7 +597,6 @@ const styles = StyleSheet.create({
   tripName: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
     flex: 1,
     marginRight: 8,
   },
@@ -502,25 +605,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  badgeFamily: {
-    backgroundColor: colors.primaryLight,
-  },
-  badgeFriends: {
-    backgroundColor: colors.secondaryLight,
-  },
   badgeText: {
     fontSize: 11,
     fontWeight: '700',
   },
-  badgeTextFamily: {
-    color: colors.primaryDark,
-  },
-  badgeTextFriends: {
-    color: colors.secondary,
-  },
   description: {
     fontSize: 13,
-    color: colors.textMuted,
     marginBottom: 12,
   },
   cardFooter: {
@@ -528,13 +618,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
     paddingTop: 10,
     marginTop: 6,
   },
   footerDate: {
     fontSize: 12,
-    color: colors.textMuted,
   },
   cardActionRow: {
     flexDirection: 'row',
@@ -542,9 +630,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   actionIconBtn: {
-    padding: 5,
-    borderRadius: 6,
-    backgroundColor: '#F8FAFC',
+    padding: 6,
+    borderRadius: 8,
   },
   viewRow: {
     flexDirection: 'row',
@@ -554,7 +641,6 @@ const styles = StyleSheet.create({
   arrowText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.primary,
   },
   emptyContainer: {
     flex: 1,
@@ -568,12 +654,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: colors.textMuted,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -586,37 +670,37 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 24,
     width: '100%',
     maxWidth: 460,
     maxHeight: '90%',
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
   },
   modalScrollBody: {
     flexShrink: 1,
   },
   importModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 20,
     width: '96%',
     maxWidth: 480,
     maxHeight: '94%',
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
   },
   importScrollBody: {
     flexShrink: 1,
@@ -637,12 +721,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: colors.text,
     marginBottom: 4,
   },
   modalSubtitle: {
     fontSize: 13,
-    color: colors.textMuted,
     marginBottom: 14,
     lineHeight: 18,
   },
@@ -653,7 +735,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
   },
   modalBtn: {
     minWidth: 100,
@@ -667,17 +748,14 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.text,
   },
   pasteChip: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: '#F1F5F9',
   },
   pasteChipText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.secondary,
   },
 });

@@ -5,13 +5,13 @@ import {
   StyleSheet,
   FlatList,
   Modal,
-  Alert,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
+import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -39,6 +39,8 @@ import {
 export function ParticipantsScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
   const isFriends = tripType === 'friends';
+  const { colors, isDark } = useTheme();
+  const { showAlert } = useAlert();
 
   const [participants, setParticipants] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -114,80 +116,84 @@ export function ParticipantsScreen({ route, navigation }) {
     setModalVisible(true);
   };
 
-  // Delete Handlers
+  // Delete Handlers using Custom Alert Modal
   const handleDeleteFamily = (family) => {
-    Alert.alert(
-      'Delete Family',
-      `Are you sure you want to delete "${family.name}" and all its members? All associated expenses and splits will be deleted.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteFamily(family.id);
-              await loadData();
-            } catch (e) {
-              console.error(e);
-              Alert.alert('Error', 'Failed to delete family.');
-            }
-          },
-        },
-      ]
-    );
+    showAlert({
+      title: 'Delete Family',
+      message: `Are you sure you want to delete "${family.name}" and all its members? All associated expenses and splits will be deleted.`,
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await deleteFamily(family.id);
+          await loadData();
+        } catch (e) {
+          console.error(e);
+          showAlert({
+            title: 'Error',
+            message: 'Failed to delete family.',
+            type: 'danger',
+          });
+        }
+      },
+    });
   };
 
   const handleDeleteMember = (member) => {
-    Alert.alert(
-      'Delete Member',
-      `Are you sure you want to remove "${member.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteMember(member.id);
-              await loadData();
-            } catch (e) {
-              console.error(e);
-              Alert.alert('Error', 'Failed to remove member.');
-            }
-          },
-        },
-      ]
-    );
+    showAlert({
+      title: 'Remove Member',
+      message: `Are you sure you want to remove "${member.name}"?`,
+      type: 'danger',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await deleteMember(member.id);
+          await loadData();
+        } catch (e) {
+          console.error(e);
+          showAlert({
+            title: 'Error',
+            message: 'Failed to remove member.',
+            type: 'danger',
+          });
+        }
+      },
+    });
   };
 
   const handleDeleteFriend = (friend) => {
-    Alert.alert(
-      'Delete Friend',
-      `Are you sure you want to remove "${friend.name}"? Associated expenses and splits will be deleted.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteFriend(friend.id);
-              await loadData();
-            } catch (e) {
-              console.error(e);
-              Alert.alert('Error', 'Failed to delete friend.');
-            }
-          },
-        },
-      ]
-    );
+    showAlert({
+      title: 'Remove Friend',
+      message: `Are you sure you want to remove "${friend.name}"? Associated expenses and splits will be deleted.`,
+      type: 'danger',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await deleteFriend(friend.id);
+          await loadData();
+        } catch (e) {
+          console.error(e);
+          showAlert({
+            title: 'Error',
+            message: 'Failed to delete friend.',
+            type: 'danger',
+          });
+        }
+      },
+    });
   };
 
   // Save Modal Handler (Handles Add & Edit)
   const handleSaveModal = async () => {
     if (!nameInput.trim()) {
-      Alert.alert('Required', 'Please enter a name.');
+      showAlert({
+        title: 'Required',
+        message: 'Please enter a name.',
+        type: 'warning',
+      });
       return;
     }
 
@@ -230,7 +236,11 @@ export function ParticipantsScreen({ route, navigation }) {
       await loadData();
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Could not save participant.');
+      showAlert({
+        title: 'Error',
+        message: 'Could not save participant.',
+        type: 'danger',
+      });
     } finally {
       setSaving(false);
     }
@@ -240,16 +250,16 @@ export function ParticipantsScreen({ route, navigation }) {
     return (
       <Card style={styles.friendCard}>
         <View style={styles.friendRow}>
-          <View style={styles.avatarCircle}>
+          <View style={[styles.avatarCircle, { backgroundColor: colors.secondaryLight }]}>
             <UserIcon size={18} color={colors.secondary} />
           </View>
-          <Text style={styles.friendName}>{item.name}</Text>
+          <Text style={[styles.friendName, { color: colors.text }]}>{item.name}</Text>
 
           <View style={styles.actionIconGroup}>
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={() => openEditFriend(item)}
-              style={styles.smallActionBtn}
+              style={[styles.smallActionBtn, { backgroundColor: colors.surface }]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <EditIcon size={16} color={colors.textMuted} />
@@ -258,7 +268,7 @@ export function ParticipantsScreen({ route, navigation }) {
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={() => handleDeleteFriend(item)}
-              style={styles.smallActionBtn}
+              style={[styles.smallActionBtn, { backgroundColor: colors.surface }]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <TrashIcon size={16} color={colors.danger} />
@@ -272,12 +282,12 @@ export function ParticipantsScreen({ route, navigation }) {
   const renderFamilyItem = ({ item }) => {
     return (
       <Card style={styles.familyCard}>
-        <View style={styles.familyHeader}>
+        <View style={[styles.familyHeader, { borderBottomColor: colors.border }]}>
           <View style={styles.familyTitleContainer}>
-            <View style={styles.familyIconCircle}>
+            <View style={[styles.familyIconCircle, { backgroundColor: colors.primaryLight }]}>
               <FamilyIcon size={18} color={colors.primaryDark} />
             </View>
-            <Text style={styles.familyName}>{item.name}</Text>
+            <Text style={[styles.familyName, { color: colors.text }]}>{item.name}</Text>
 
             <TouchableOpacity
               activeOpacity={0.6}
@@ -308,25 +318,35 @@ export function ParticipantsScreen({ route, navigation }) {
         </View>
 
         {item.members.length === 0 ? (
-          <Text style={styles.emptyMembersText}>No members added yet</Text>
+          <Text style={[styles.emptyMembersText, { color: colors.textMuted }]}>
+            No members added yet
+          </Text>
         ) : (
           <View style={styles.membersList}>
             {item.members.map(member => (
-              <View key={member.id} style={styles.memberRow}>
+              <View key={member.id} style={[styles.memberRow, { borderBottomColor: colors.border }]}>
                 <View style={styles.memberInfo}>
-                  <Text style={styles.memberName}>{member.name}</Text>
+                  <Text style={[styles.memberName, { color: colors.text }]}>{member.name}</Text>
                   <View
                     style={[
                       styles.memberBadge,
-                      member.memberType === 'child' ? styles.childBadge : styles.adultBadge,
+                      {
+                        backgroundColor:
+                          member.memberType === 'child'
+                            ? colors.warningLight
+                            : colors.secondaryLight,
+                      },
                     ]}
                   >
                     <Text
                       style={[
                         styles.memberBadgeText,
-                        member.memberType === 'child'
-                          ? styles.childBadgeText
-                          : styles.adultBadgeText,
+                        {
+                          color:
+                            member.memberType === 'child'
+                              ? colors.warning
+                              : colors.secondary,
+                        },
                       ]}
                     >
                       {member.memberType === 'child' ? 'Child (0.5x)' : 'Adult (1.0x)'}
@@ -338,7 +358,7 @@ export function ParticipantsScreen({ route, navigation }) {
                   <TouchableOpacity
                     activeOpacity={0.6}
                     onPress={() => openEditMember(item.id, member)}
-                    style={styles.smallActionBtn}
+                    style={[styles.smallActionBtn, { backgroundColor: colors.surface }]}
                     hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                   >
                     <EditIcon size={14} color={colors.textMuted} />
@@ -347,7 +367,7 @@ export function ParticipantsScreen({ route, navigation }) {
                   <TouchableOpacity
                     activeOpacity={0.6}
                     onPress={() => handleDeleteMember(member)}
-                    style={styles.smallActionBtn}
+                    style={[styles.smallActionBtn, { backgroundColor: colors.surface }]}
                     hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                   >
                     <TrashIcon size={14} color={colors.danger} />
@@ -364,7 +384,7 @@ export function ParticipantsScreen({ route, navigation }) {
   const getModalTitle = () => {
     switch (modalMode) {
       case 'add_friend':
-        return 'Add New Friend';
+        return 'Add Friend';
       case 'edit_friend':
         return 'Edit Friend';
       case 'add_family':
@@ -387,11 +407,14 @@ export function ParticipantsScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topBar}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Redesigned Participants Top Header Bar */}
+      <View style={[styles.topBar, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
         <View style={styles.topBarTitleContainer}>
-          <Text style={styles.pageTitle}>{isFriends ? 'Friends List' : 'Trip Families'}</Text>
-          <Text style={styles.pageSubtitle}>
+          <Text style={[styles.pageTitle, { color: colors.text }]}>
+            {isFriends ? 'Friends List' : 'Trip Families'}
+          </Text>
+          <Text style={[styles.pageSubtitle, { color: colors.textMuted }]}>
             {isFriends
               ? 'Add friends to split trip expenses with'
               : 'Add families and their members (Adult/Child)'}
@@ -414,15 +437,15 @@ export function ParticipantsScreen({ route, navigation }) {
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIconContainer}>
               {isFriends ? (
-                <UsersIcon size={44} color="#CBD5E1" />
+                <UsersIcon size={44} color={colors.textMuted} />
               ) : (
-                <FamilyIcon size={44} color="#CBD5E1" />
+                <FamilyIcon size={44} color={colors.textMuted} />
               )}
             </View>
-            <Text style={styles.emptyTitle}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
               {isFriends ? 'No friends added yet' : 'No families added yet'}
             </Text>
-            <Text style={styles.emptySubtitle}>
+            <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
               {isFriends
                 ? 'Tap "Add Friend" above to add your travel buddies.'
                 : 'Tap "Add Family" above to create family groups.'}
@@ -437,8 +460,8 @@ export function ParticipantsScreen({ route, navigation }) {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.modalOverlay}
         >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{getModalTitle()}</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>{getModalTitle()}</Text>
 
             <ScrollView
               showsVerticalScrollIndicator={false}
@@ -458,43 +481,59 @@ export function ParticipantsScreen({ route, navigation }) {
                 onChangeText={setNameInput}
               />
 
-              {/* If adding or editing a family member, show Adult / Child toggle */}
-              {modalMode.includes('member') ? (
+              {modalMode === 'add_member' || modalMode === 'edit_member' ? (
                 <View style={styles.typeSelectorContainer}>
-                  <Text style={styles.inputLabel}>Member Category</Text>
+                  <Text style={[styles.inputLabel, { color: colors.text }]}>Member Type</Text>
                   <View style={styles.toggleRow}>
                     <TouchableOpacity
-                      activeOpacity={0.7}
                       style={[
                         styles.toggleButton,
-                        memberType === 'adult' && styles.toggleButtonActive,
+                        { borderColor: colors.border, backgroundColor: colors.surface },
+                        memberType === 'adult' && [
+                          styles.toggleButtonActive,
+                          { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+                        ],
                       ]}
                       onPress={() => setMemberType('adult')}
+                      activeOpacity={0.7}
                     >
                       <Text
                         style={[
                           styles.toggleText,
-                          memberType === 'adult' && styles.toggleTextActive,
+                          { color: colors.textMuted },
+                          memberType === 'adult' && [
+                            styles.toggleTextActive,
+                            { color: colors.primaryDark },
+                          ],
                         ]}
                       >
-                        Adult (1.0x share)
+                        Adult (1.0x Split)
                       </Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
-                      activeOpacity={0.7}
                       style={[
                         styles.toggleButton,
-                        memberType === 'child' && styles.toggleButtonActive,
+                        { borderColor: colors.border, backgroundColor: colors.surface },
+                        memberType === 'child' && [
+                          styles.toggleButtonActive,
+                          { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+                        ],
                       ]}
                       onPress={() => setMemberType('child')}
+                      activeOpacity={0.7}
                     >
                       <Text
                         style={[
                           styles.toggleText,
-                          memberType === 'child' && styles.toggleTextActive,
+                          { color: colors.textMuted },
+                          memberType === 'child' && [
+                            styles.toggleTextActive,
+                            { color: colors.primaryDark },
+                          ],
                         ]}
                       >
-                        Child (0.5x share)
+                        Child (0.5x Split)
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -526,31 +565,25 @@ export function ParticipantsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   topBar: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   topBarTitleContainer: {
     flex: 1,
-    marginRight: 10,
+    marginRight: 12,
   },
   pageTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
-    color: colors.text,
   },
   pageSubtitle: {
     fontSize: 12,
-    color: colors.textMuted,
     marginTop: 2,
   },
   list: {
@@ -558,17 +591,17 @@ const styles = StyleSheet.create({
   },
   friendCard: {
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   friendRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   avatarCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -576,30 +609,26 @@ const styles = StyleSheet.create({
   friendName: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
     flex: 1,
   },
   actionIconGroup: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
   smallActionBtn: {
     padding: 6,
-    borderRadius: 6,
-    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
   },
   familyCard: {
-    padding: 16,
-    marginBottom: 14,
+    padding: 14,
+    marginBottom: 12,
   },
   familyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
     paddingBottom: 10,
   },
   familyTitleContainer: {
@@ -612,7 +641,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -620,7 +648,6 @@ const styles = StyleSheet.create({
   familyName: {
     fontSize: 17,
     fontWeight: '700',
-    color: colors.text,
     marginRight: 8,
   },
   familyActionBtn: {
@@ -629,7 +656,6 @@ const styles = StyleSheet.create({
   },
   emptyMembersText: {
     fontSize: 13,
-    color: colors.textMuted,
     fontStyle: 'italic',
     paddingVertical: 6,
   },
@@ -642,7 +668,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
   },
   memberInfo: {
     flexDirection: 'row',
@@ -653,28 +678,15 @@ const styles = StyleSheet.create({
   memberName: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
   },
   memberBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
   },
-  adultBadge: {
-    backgroundColor: '#E0F2FE',
-  },
-  childBadge: {
-    backgroundColor: '#FEF3C7',
-  },
   memberBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
-  },
-  adultBadgeText: {
-    color: '#0284C7',
-  },
-  childBadgeText: {
-    color: '#D97706',
+    fontWeight: '700',
   },
   memberActions: {
     flexDirection: 'row',
@@ -692,23 +704,22 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: colors.textMuted,
     textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderBottomWidth: 0,
     padding: 24,
     maxHeight: '90%',
   },
@@ -717,14 +728,12 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
+    fontWeight: '800',
     marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
     marginBottom: 8,
   },
   typeSelectorContainer: {
@@ -738,22 +747,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderWidth: 1.5,
-    borderColor: colors.border,
     borderRadius: 10,
     alignItems: 'center',
   },
-  toggleButtonActive: {
-    borderColor: colors.primary,
-    backgroundColor: '#F0FDF4',
-  },
+  toggleButtonActive: {},
   toggleText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.textMuted,
   },
-  toggleTextActive: {
-    color: colors.primaryDark,
-  },
+  toggleTextActive: {},
   modalActions: {
     flexDirection: 'row',
     gap: 12,

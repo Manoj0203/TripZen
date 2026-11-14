@@ -211,3 +211,55 @@ export function DownloadIcon({ size = 18, color = '#0F172A', strokeWidth = 2, st
     </Svg>
   );
 }
+
+export function MoonIcon({ size = 18, color = '#F1F5F9', strokeWidth = 2, style }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </Svg>
+  );
+}
+
+export function SunIcon({ size = 18, color = '#F59E0B', strokeWidth = 2, style }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Circle cx="12" cy="12" r="5" />
+      <Line x1="12" y1="1" x2="12" y2="3" />
+      <Line x1="12" y1="21" x2="12" y2="23" />
+      <Line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <Line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <Line x1="1" y1="12" x2="3" y2="12" />
+      <Line x1="21" y1="12" x2="23" y2="12" />
+      <Line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <Line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </Svg>
+  );
+}
+
+export function AlertCircleIcon({ size = 24, color = '#EF4444', strokeWidth = 2, style }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Circle cx="12" cy="12" r="10" />
+      <Line x1="12" y1="8" x2="12" y2="12" />
+      <Line x1="12" y1="16" x2="12.01" y2="16" />
+    </Svg>
+  );
+}
+
+export function InfoIcon({ size = 24, color = '#3B82F6', strokeWidth = 2, style }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Circle cx="12" cy="12" r="10" />
+      <Line x1="12" y1="16" x2="12" y2="12" />
+      <Line x1="12" y1="8" x2="12.01" y2="8" />
+    </Svg>
+  );
+}
+
+export function ChevronLeftIcon({ size = 22, color = '#0F172A', strokeWidth = 2.5, style }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Polyline points="15 18 9 12 15 6" />
+    </Svg>
+  );
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
-import { colors } from '../theme/colors';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { getExpenses, getParticipants, deleteExpense } from '../services/tripService';
@@ -10,6 +11,8 @@ import { PlusIcon, EditIcon, TrashIcon, ReceiptIcon } from '../components/Icons'
 export function ExpensesScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
   const isFriends = tripType === 'friends';
+  const { colors } = useTheme();
+  const { showAlert } = useAlert();
 
   const [expensesList, setExpensesList] = useState([]);
   const [participants, setParticipants] = useState([]);
@@ -63,26 +66,26 @@ export function ExpensesScreen({ route, navigation }) {
   };
 
   const handleDeleteExpense = (item) => {
-    Alert.alert(
-      'Delete Expense',
-      `Are you sure you want to delete "${item.title}" (${formatPaiseToRupees(item.amountPaise)})?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteExpense(item.id);
-              await loadData();
-            } catch (e) {
-              console.error(e);
-              Alert.alert('Error', 'Failed to delete expense.');
-            }
-          },
-        },
-      ]
-    );
+    showAlert({
+      title: 'Delete Expense',
+      message: `Are you sure you want to delete "${item.title}" (${formatPaiseToRupees(item.amountPaise)})?`,
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await deleteExpense(item.id);
+          await loadData();
+        } catch (e) {
+          console.error(e);
+          showAlert({
+            title: 'Error',
+            message: 'Failed to delete expense.',
+            type: 'danger',
+          });
+        }
+      },
+    });
   };
 
   const renderExpenseItem = ({ item }) => {
@@ -94,9 +97,9 @@ export function ExpensesScreen({ route, navigation }) {
             activeOpacity={0.7}
             onPress={() => handleEditExpense(item)}
           >
-            <Text style={styles.expenseTitle}>{item.title}</Text>
-            <Text style={styles.expenseSub}>
-              Paid by <Text style={styles.payerBold}>{getPayerName(item.payerFamilyId)}</Text> •{' '}
+            <Text style={[styles.expenseTitle, { color: colors.text }]}>{item.title}</Text>
+            <Text style={[styles.expenseSub, { color: colors.textMuted }]}>
+              Paid by <Text style={[styles.payerBold, { color: colors.text }]}>{getPayerName(item.payerFamilyId)}</Text> •{' '}
               {new Date(item.expenseDate).toLocaleDateString()}
             </Text>
           </TouchableOpacity>
@@ -106,14 +109,14 @@ export function ExpensesScreen({ route, navigation }) {
               activeOpacity={0.7}
               onPress={() => handleEditExpense(item)}
             >
-              <Text style={styles.expenseAmount}>
+              <Text style={[styles.expenseAmount, { color: colors.text }]}>
                 {formatPaiseToRupees(item.amountPaise)}
               </Text>
             </TouchableOpacity>
 
             <View style={styles.actionButtonGroup}>
               <TouchableOpacity
-                style={styles.actionBtn}
+                style={[styles.actionBtn, { backgroundColor: colors.surface }]}
                 activeOpacity={0.6}
                 onPress={() => handleEditExpense(item)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -122,7 +125,7 @@ export function ExpensesScreen({ route, navigation }) {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.actionBtn}
+                style={[styles.actionBtn, { backgroundColor: colors.surface }]}
                 activeOpacity={0.6}
                 onPress={() => handleDeleteExpense(item)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -137,12 +140,12 @@ export function ExpensesScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Summary Card */}
-      <View style={styles.summaryBar}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Redesigned Summary Card Header */}
+      <View style={[styles.summaryBar, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
         <View>
-          <Text style={styles.summaryLabel}>Total Trip Spend</Text>
-          <Text style={styles.summaryAmount}>
+          <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>Total Trip Spend</Text>
+          <Text style={[styles.summaryAmount, { color: colors.primaryDark }]}>
             {formatPaiseToRupees(totalPaise)}
           </Text>
         </View>
@@ -165,12 +168,19 @@ export function ExpensesScreen({ route, navigation }) {
         keyExtractor={item => item.id}
         renderItem={renderExpenseItem}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <ReceiptIcon size={52} color="#CBD5E1" style={styles.emptyIcon} />
-            <Text style={styles.emptyTitle}>No Expenses Logged</Text>
-            <Text style={styles.emptySubtitle}>
+            <ReceiptIcon size={52} color={colors.textMuted} style={styles.emptyIcon} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>No Expenses Logged</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
               {participants.length === 0
                 ? isFriends
                   ? 'Add friends first to start logging expenses!'
@@ -187,28 +197,24 @@ export function ExpensesScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   summaryBar: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   summaryLabel: {
-    fontSize: 12,
-    color: colors.textMuted,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   summaryAmount: {
     fontSize: 22,
     fontWeight: '800',
-    color: colors.primaryDark,
     marginTop: 2,
   },
   list: {
@@ -230,16 +236,13 @@ const styles = StyleSheet.create({
   expenseTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
   },
   expenseSub: {
     fontSize: 12,
-    color: colors.textMuted,
     marginTop: 3,
   },
   payerBold: {
     fontWeight: '700',
-    color: colors.text,
   },
   amountActionCol: {
     alignItems: 'flex-end',
@@ -247,7 +250,6 @@ const styles = StyleSheet.create({
   expenseAmount: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 4,
   },
   actionButtonGroup: {
@@ -255,9 +257,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionBtn: {
-    padding: 4,
-    borderRadius: 6,
-    backgroundColor: '#F8FAFC',
+    padding: 5,
+    borderRadius: 7,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -270,12 +271,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: colors.textMuted,
     textAlign: 'center',
   },
 });

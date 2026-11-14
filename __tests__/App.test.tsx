@@ -13,6 +13,15 @@ jest.mock('@op-engineering/op-sqlite', () => ({
   })),
 }));
 
+// Mock react-native-modal for headless Jest environment
+jest.mock('react-native-modal', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return function MockModal({ isVisible, children, testID }) {
+    return isVisible ? React.createElement(View, { testID }, children) : null;
+  };
+});
+
 import App from '../App';
 
 test('renders correctly', async () => {

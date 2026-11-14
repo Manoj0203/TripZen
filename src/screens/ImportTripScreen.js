@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Alert,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
+import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -19,6 +19,9 @@ import { DownloadIcon } from '../components/Icons';
 import { getFromClipboard } from '../utils/clipboard';
 
 export function ImportTripScreen({ navigation }) {
+  const { colors } = useTheme();
+  const { showAlert } = useAlert();
+
   const [password, setPassword] = useState('');
   const [encryptedData, setEncryptedData] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,7 +32,11 @@ export function ImportTripScreen({ navigation }) {
       if (content) {
         setEncryptedData(content);
       } else {
-        Alert.alert('Clipboard Empty', 'No text found in clipboard.');
+        showAlert({
+          title: 'Clipboard Empty',
+          message: 'No text found in clipboard.',
+          type: 'info',
+        });
       }
     } catch (e) {
       console.error(e);
@@ -38,35 +45,47 @@ export function ImportTripScreen({ navigation }) {
 
   const handleImport = async () => {
     if (!encryptedData.trim()) {
-      Alert.alert('Data Required', 'Please paste the encrypted backup string.');
+      showAlert({
+        title: 'Data Required',
+        message: 'Please paste the encrypted backup string.',
+        type: 'warning',
+      });
       return;
     }
     if (!password.trim()) {
-      Alert.alert('Password Required', 'Please enter the decryption password for this trip.');
+      showAlert({
+        title: 'Password Required',
+        message: 'Please enter the decryption password for this trip.',
+        type: 'warning',
+      });
       return;
     }
 
     setLoading(true);
     try {
       const trip = await importTripEncrypted(encryptedData.trim(), password.trim());
-      Alert.alert('Trip Imported', `Successfully imported "${trip.name}"!`, [
-        {
-          text: 'Open Trip',
-          onPress: () => {
-            navigation.replace('TripDetails', {
-              tripId: trip.id,
-              tripName: trip.name,
-              tripType: trip.tripType,
-            });
-          },
+      showAlert({
+        title: 'Trip Imported',
+        message: `Successfully imported "${trip.name}"!`,
+        type: 'success',
+        confirmText: 'Open Trip',
+        cancelText: null,
+        showCancel: false,
+        onConfirm: () => {
+          navigation.replace('TripDetails', {
+            tripId: trip.id,
+            tripName: trip.name,
+            tripType: trip.tripType,
+          });
         },
-      ]);
+      });
     } catch (e) {
       console.error(e);
-      Alert.alert(
-        'Import Failed',
-        'Could not decrypt trip data. Please verify the password and backup string.'
-      );
+      showAlert({
+        title: 'Import Failed',
+        message: 'Could not decrypt trip data. Please verify the password and backup string.',
+        type: 'danger',
+      });
     } finally {
       setLoading(false);
     }
@@ -76,15 +95,15 @@ export function ImportTripScreen({ navigation }) {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
-      style={styles.keyboardContainer}
+      style={[styles.keyboardContainer, { backgroundColor: colors.background }]}
     >
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.screenTitle}>Import Trip</Text>
-        <Text style={styles.screenSubtitle}>
+        <Text style={[styles.screenTitle, { color: colors.text }]}>Import Trip</Text>
+        <Text style={[styles.screenSubtitle, { color: colors.textMuted }]}>
           Paste an encrypted trip backup string to restore a trip and all its expenses offline.
         </Text>
 
@@ -98,19 +117,30 @@ export function ImportTripScreen({ navigation }) {
           />
 
           <View style={styles.labelRow}>
-            <Text style={styles.inputLabel}>Encrypted Backup String</Text>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>
+              Encrypted Backup String
+            </Text>
             <TouchableOpacity
-              style={styles.pasteChip}
+              style={[styles.pasteChip, { backgroundColor: colors.surface }]}
               onPress={handlePasteFromClipboard}
               activeOpacity={0.65}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
             >
-              <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
+              <Text style={[styles.pasteChipText, { color: colors.secondary }]}>
+                Paste from Clipboard
+              </Text>
             </TouchableOpacity>
           </View>
 
           <TextInput
-            style={styles.payloadBox}
+            style={[
+              styles.payloadBox,
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+              },
+            ]}
             placeholder="Paste the Base64 encrypted string here..."
             placeholderTextColor={colors.textMuted}
             value={encryptedData}
@@ -135,11 +165,9 @@ export function ImportTripScreen({ navigation }) {
 const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     padding: 20,
@@ -148,12 +176,10 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: colors.text,
     marginBottom: 6,
   },
   screenSubtitle: {
     fontSize: 14,
-    color: colors.textMuted,
     lineHeight: 20,
     marginBottom: 20,
   },
@@ -169,29 +195,23 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.text,
   },
   pasteChip: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: '#F1F5F9',
   },
   pasteChipText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.secondary,
   },
   payloadBox: {
     height: 120,
     maxHeight: 140,
-    borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     fontSize: 12,
-    color: colors.text,
-    backgroundColor: '#F8FAFC',
     textAlignVertical: 'top',
     marginBottom: 16,
   },

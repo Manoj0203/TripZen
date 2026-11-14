@@ -1,31 +1,44 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { formatPaiseToRupees } from '../logic/currencyFormatter';
 
 export function SplitPreview({ splits, familyNames = {}, isFriendsTrip = false }) {
+  const { colors } = useTheme();
+
   if (!splits || splits.length === 0) {
     return null;
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+      <Text style={[styles.title, { color: colors.textMuted }]}>
         {isFriendsTrip ? 'Share Per Friend' : 'Share Per Family'}
       </Text>
       {splits.map((split, index) => {
         const displayName = familyNames[split.familyId] || `Unit ${index + 1}`;
         return (
-          <View key={split.familyId || index} style={styles.row}>
+          <View
+            key={split.familyId || index}
+            style={[styles.row, { borderBottomColor: colors.border }]}
+          >
             <View style={styles.nameContainer}>
-              <Text style={styles.name}>{displayName}</Text>
+              <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
               {split.weightUsed !== undefined && !isFriendsTrip ? (
-                <Text style={styles.weightBadge}>
+                <Text
+                  style={[
+                    styles.weightBadge,
+                    {
+                      color: colors.textMuted,
+                      backgroundColor: colors.card,
+                    },
+                  ]}
+                >
                   Weight: {(split.weightUsed / 100).toFixed(1)}x
                 </Text>
               ) : null}
             </View>
-            <Text style={styles.amount}>
+            <Text style={[styles.amount, { color: colors.primaryDark }]}>
               {formatPaiseToRupees(split.sharePaise)}
             </Text>
           </View>
@@ -37,16 +50,14 @@ export function SplitPreview({ splits, familyNames = {}, isFriendsTrip = false }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F1F5F9',
     borderRadius: 12,
     padding: 12,
     marginTop: 8,
     marginBottom: 16,
   },
   title: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
-    color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 8,
@@ -55,9 +66,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
   },
   nameContainer: {
     flexDirection: 'row',
@@ -66,12 +76,9 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
   },
   weightBadge: {
     fontSize: 11,
-    color: colors.textMuted,
-    backgroundColor: '#E2E8F0',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -80,6 +87,5 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.primaryDark,
   },
 });

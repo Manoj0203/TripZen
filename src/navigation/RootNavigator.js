@@ -6,22 +6,26 @@ import { ImportTripScreen } from '../screens/ImportTripScreen';
 import { AddExpenseScreen } from '../screens/AddExpenseScreen';
 import { SyncBackupModal } from '../screens/SyncBackupModal';
 import { TripTabs } from './TripTabs';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
 export function RootNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.headerBg,
         },
         headerTitleStyle: {
-          fontWeight: '700',
+          fontWeight: '800',
+          fontSize: 18,
           color: colors.text,
         },
         headerTintColor: colors.primary,
+        headerShadowVisible: false,
         contentStyle: {
           backgroundColor: colors.background,
         },

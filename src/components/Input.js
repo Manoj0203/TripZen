@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 export function Input({
   label,
@@ -15,20 +15,31 @@ export function Input({
   inputStyle,
   ...props
 }) {
+  const { colors } = useTheme();
+
   return (
     <View style={[styles.container, containerStyle]}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? (
+        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+      ) : null}
       <View
         style={[
           styles.inputWrapper,
+          {
+            backgroundColor: colors.inputBg,
+            borderColor: error ? colors.danger : colors.border,
+          },
           multiline && styles.inputWrapperMultiline,
           error && styles.inputError,
         ]}
       >
-        {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
+        {prefix ? (
+          <Text style={[styles.prefix, { color: colors.text }]}>{prefix}</Text>
+        ) : null}
         <TextInput
           style={[
             styles.input,
+            { color: colors.text },
             prefix && styles.inputWithPrefix,
             multiline && styles.inputMultiline,
             inputStyle,
@@ -42,7 +53,9 @@ export function Input({
           {...props}
         />
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
+      ) : null}
     </View>
   );
 }
@@ -54,15 +67,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
     marginBottom: 6,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 12,
   },
@@ -71,19 +81,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   inputError: {
-    borderColor: colors.danger,
+    borderWidth: 1.5,
   },
   prefix: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
     marginRight: 4,
   },
   input: {
     flex: 1,
     paddingVertical: 12,
     fontSize: 15,
-    color: colors.text,
   },
   inputMultiline: {
     textAlignVertical: 'top',
@@ -94,7 +102,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
-    color: colors.danger,
     marginTop: 4,
   },
 });

@@ -4,45 +4,106 @@ import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { ExpensesScreen } from '../screens/ExpensesScreen';
 import { ParticipantsScreen } from '../screens/ParticipantsScreen';
 import { SettlementsScreen } from '../screens/SettlementsScreen';
-import { colors } from '../theme/colors';
-import { CreditCardIcon, FamilyIcon, UsersIcon, ScaleIcon, SyncIcon } from '../components/Icons';
+import { useTheme } from '../theme/ThemeContext';
+import {
+  CreditCardIcon,
+  FamilyIcon,
+  UsersIcon,
+  ScaleIcon,
+  SyncIcon,
+  ChevronLeftIcon,
+  MoonIcon,
+  SunIcon,
+} from '../components/Icons';
 
 const Tab = createBottomTabNavigator();
 
 export function TripTabs({ route, navigation }) {
   const { tripId, tripName, tripType = 'families' } = route.params;
   const isFriends = tripType === 'friends';
+  const { colors, isDark, toggleTheme } = useTheme();
 
   return (
     <Tab.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.headerBg,
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
         },
-        headerTitleStyle: {
-          fontSize: 18,
-          fontWeight: '800',
-          color: colors.text,
-        },
-        headerRight: () => (
+        headerTitle: () => (
+          <View style={styles.titleContainer}>
+            <Text style={[styles.tripTitleText, { color: colors.text }]} numberOfLines={1}>
+              {tripName || 'Trip Details'}
+            </Text>
+            <View
+              style={[
+                styles.badgePill,
+                {
+                  backgroundColor: isFriends ? colors.secondaryLight : colors.primaryLight,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.badgePillText,
+                  {
+                    color: isFriends ? colors.secondary : colors.primaryDark,
+                  },
+                ]}
+              >
+                {isFriends ? 'Friends' : 'Family'}
+              </Text>
+            </View>
+          </View>
+        ),
+        headerLeft: () => (
           <TouchableOpacity
-            style={styles.backupHeaderBtn}
-            onPress={() => navigation.navigate('SyncBackup', { tripId, tripName })}
+            style={[styles.backBtn, { backgroundColor: colors.surface }]}
+            onPress={() => navigation.navigate('Home')}
             activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <SyncIcon size={14} color={colors.secondary} style={{ marginRight: 5 }} />
-            <Text style={styles.backupHeaderText}>Sync / QR</Text>
+            <ChevronLeftIcon size={20} color={colors.text} />
           </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <View style={styles.rightActionsRow}>
+            {/* Theme Toggle Button */}
+            <TouchableOpacity
+              style={[styles.iconActionBtn, { backgroundColor: colors.surface }]}
+              onPress={toggleTheme}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              {isDark ? (
+                <SunIcon size={18} color="#FBBF24" />
+              ) : (
+                <MoonIcon size={18} color={colors.textMuted} />
+              )}
+            </TouchableOpacity>
+
+            {/* Sync / QR Button */}
+            <TouchableOpacity
+              style={[styles.backupHeaderBtn, { backgroundColor: colors.surface }]}
+              onPress={() => navigation.navigate('SyncBackup', { tripId, tripName })}
+              activeOpacity={0.7}
+            >
+              <SyncIcon size={14} color={colors.secondary} style={{ marginRight: 5 }} />
+              <Text style={[styles.backupHeaderText, { color: colors.secondary }]}>
+                Sync
+              </Text>
+            </TouchableOpacity>
+          </View>
         ),
         tabBarActiveTintColor: colors.primaryDark,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.tabBarBg,
           borderTopColor: colors.border,
+          borderTopWidth: 1,
           paddingBottom: 6,
           paddingTop: 6,
           height: 60,
@@ -58,7 +119,6 @@ export function TripTabs({ route, navigation }) {
         component={ExpensesScreen}
         initialParams={{ tripId, tripName, tripType }}
         options={{
-          title: tripName || 'Expenses',
           tabBarLabel: 'Expenses',
           tabBarIcon: ({ color }) => <CreditCardIcon size={20} color={color} />,
         }}
@@ -69,11 +129,13 @@ export function TripTabs({ route, navigation }) {
         component={ParticipantsScreen}
         initialParams={{ tripId, tripName, tripType }}
         options={{
-          title: isFriends ? 'Friends' : 'Families',
           tabBarLabel: isFriends ? 'Friends' : 'Families',
-          tabBarIcon: ({ color }) => (
-            isFriends ? <UsersIcon size={20} color={color} /> : <FamilyIcon size={20} color={color} />
-          ),
+          tabBarIcon: ({ color }) =>
+            isFriends ? (
+              <UsersIcon size={20} color={color} />
+            ) : (
+              <FamilyIcon size={20} color={color} />
+            ),
         }}
       />
 
@@ -82,7 +144,6 @@ export function TripTabs({ route, navigation }) {
         component={SettlementsScreen}
         initialParams={{ tripId, tripName, tripType }}
         options={{
-          title: 'Settlement Dashboard',
           tabBarLabel: 'Settlements',
           tabBarIcon: ({ color }) => <ScaleIcon size={20} color={color} />,
         }}
@@ -92,18 +153,54 @@ export function TripTabs({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
+  backBtn: {
+    marginLeft: 14,
+    padding: 6,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: 180,
+    gap: 8,
+  },
+  tripTitleText: {
+    fontSize: 17,
+    fontWeight: '800',
+    flexShrink: 1,
+  },
+  badgePill: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgePillText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  rightActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 14,
+    gap: 8,
+  },
+  iconActionBtn: {
+    padding: 7,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   backupHeaderBtn: {
-    marginRight: 16,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
   },
   backupHeaderText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.secondary,
   },
 });

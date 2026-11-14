@@ -4,14 +4,14 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Alert,
   Share,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
+import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -21,6 +21,8 @@ import { copyToClipboard, getFromClipboard } from '../utils/clipboard';
 
 export function SyncBackupModal({ route, navigation }) {
   const { tripId, tripName } = route.params || {};
+  const { colors, isDark } = useTheme();
+  const { showAlert } = useAlert();
 
   const [activeTab, setActiveTab] = useState('export'); // 'export' | 'import'
 
@@ -37,7 +39,11 @@ export function SyncBackupModal({ route, navigation }) {
 
   const handleGenerateBackup = async () => {
     if (!password.trim()) {
-      Alert.alert('Password Required', 'Please enter a password to protect this backup.');
+      showAlert({
+        title: 'Password Required',
+        message: 'Please enter a password to protect this backup.',
+        type: 'warning',
+      });
       return;
     }
 
@@ -48,7 +54,11 @@ export function SyncBackupModal({ route, navigation }) {
       setEncryptedPayload(payload);
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to generate backup.');
+      showAlert({
+        title: 'Error',
+        message: 'Failed to generate backup.',
+        type: 'danger',
+      });
     } finally {
       setLoading(false);
     }
@@ -60,10 +70,18 @@ export function SyncBackupModal({ route, navigation }) {
       await copyToClipboard(encryptedPayload);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
-      Alert.alert('Copied!', 'Encrypted backup string copied to your clipboard.');
+      showAlert({
+        title: 'Copied!',
+        message: 'Encrypted backup string copied to your clipboard.',
+        type: 'success',
+      });
     } catch (e) {
       console.error(e);
-      Alert.alert('Notice', 'Please long-press the string below to copy manually.');
+      showAlert({
+        title: 'Notice',
+        message: 'Please long-press the string below to copy manually.',
+        type: 'info',
+      });
     }
   };
 
@@ -85,7 +103,11 @@ export function SyncBackupModal({ route, navigation }) {
       if (content) {
         setImportPayload(content);
       } else {
-        Alert.alert('Clipboard Empty', 'No text found in clipboard.');
+        showAlert({
+          title: 'Clipboard Empty',
+          message: 'No text found in clipboard.',
+          type: 'info',
+        });
       }
     } catch (e) {
       console.error(e);
@@ -94,35 +116,43 @@ export function SyncBackupModal({ route, navigation }) {
 
   const handleImportBackup = async () => {
     if (!importPayload.trim()) {
-      Alert.alert('Required', 'Please paste the encrypted backup string.');
+      showAlert({
+        title: 'Required',
+        message: 'Please paste the encrypted backup string.',
+        type: 'warning',
+      });
       return;
     }
     if (!importPassword.trim()) {
-      Alert.alert('Required', 'Please enter the decryption password for this backup.');
+      showAlert({
+        title: 'Required',
+        message: 'Please enter the decryption password for this backup.',
+        type: 'warning',
+      });
       return;
     }
 
     setImportLoading(true);
     try {
       const imported = await importTripEncrypted(importPayload.trim(), importPassword.trim());
-      Alert.alert(
-        'Import Successful',
-        `Trip "${imported?.name || 'Imported Trip'}" restored successfully!`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              navigation.navigate('Home');
-            },
-          },
-        ]
-      );
+      showAlert({
+        title: 'Import Successful',
+        message: `Trip "${imported?.name || 'Imported Trip'}" restored successfully!`,
+        type: 'success',
+        confirmText: 'OK',
+        cancelText: null,
+        showCancel: false,
+        onConfirm: () => {
+          navigation.navigate('Home');
+        },
+      });
     } catch (e) {
       console.error(e);
-      Alert.alert(
-        'Import Failed',
-        'Could not decrypt backup. Please check your password and verify the backup string.'
-      );
+      showAlert({
+        title: 'Import Failed',
+        message: 'Could not decrypt backup. Please check your password and verify the backup string.',
+        type: 'danger',
+      });
     } finally {
       setImportLoading(false);
     }
@@ -132,35 +162,53 @@ export function SyncBackupModal({ route, navigation }) {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: colors.background }}
     >
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.screenTitle}>Offline Backup & Sync</Text>
-        <Text style={styles.screenSubtitle}>
+        <Text style={[styles.screenTitle, { color: colors.text }]}>Offline Backup & Sync</Text>
+        <Text style={[styles.screenSubtitle, { color: colors.textMuted }]}>
           Share, backup, or restore trip data safely without an internet connection using AES-256 encryption.
         </Text>
 
         {/* Tabs */}
-        <View style={styles.tabBar}>
+        <View style={[styles.tabBar, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'export' && styles.tabButtonActive]}
+            style={[
+              styles.tabButton,
+              activeTab === 'export' && [styles.tabButtonActive, { backgroundColor: colors.card }],
+            ]}
             onPress={() => setActiveTab('export')}
             activeOpacity={0.7}
           >
-            <Text style={[styles.tabText, activeTab === 'export' && styles.tabTextActive]}>
+            <Text
+              style={[
+                styles.tabText,
+                { color: colors.textMuted },
+                activeTab === 'export' && [styles.tabTextActive, { color: colors.text }],
+              ]}
+            >
               Export & Backup
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'import' && styles.tabButtonActive]}
+            style={[
+              styles.tabButton,
+              activeTab === 'import' && [styles.tabButtonActive, { backgroundColor: colors.card }],
+            ]}
             onPress={() => setActiveTab('import')}
             activeOpacity={0.7}
           >
-            <Text style={[styles.tabText, activeTab === 'import' && styles.tabTextActive]}>
+            <Text
+              style={[
+                styles.tabText,
+                { color: colors.textMuted },
+                activeTab === 'import' && [styles.tabTextActive, { color: colors.text }],
+              ]}
+            >
               Import & Restore
             </Text>
           </TouchableOpacity>
@@ -168,8 +216,10 @@ export function SyncBackupModal({ route, navigation }) {
 
         {activeTab === 'export' ? (
           <Card style={styles.card}>
-            <Text style={styles.cardHeader}>Export Trip "{tripName}"</Text>
-            <Text style={styles.cardSub}>
+            <Text style={[styles.cardHeader, { color: colors.text }]}>
+              Export Trip "{tripName}"
+            </Text>
+            <Text style={[styles.cardSub, { color: colors.textMuted }]}>
               Enter a password to encrypt this trip. Anyone scanning or importing will need this password.
             </Text>
 
@@ -187,51 +237,82 @@ export function SyncBackupModal({ route, navigation }) {
             />
 
             {encryptedPayload ? (
-              <View style={styles.resultContainer}>
-                <Text style={styles.resultLabel}>Offline QR Code:</Text>
-                <View style={styles.qrWrapper}>
+              <View style={[styles.resultContainer, { borderTopColor: colors.border }]}>
+                <Text style={[styles.resultLabel, { color: colors.text }]}>Offline QR Code:</Text>
+                <View
+                  style={[
+                    styles.qrWrapper,
+                    {
+                      backgroundColor: '#FFFFFF',
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
                   <QRCode
                     value={encryptedPayload.substring(0, 300)}
                     size={180}
-                    color={colors.text}
+                    color="#0F172A"
                     backgroundColor="#FFFFFF"
                   />
                 </View>
 
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.resultLabel}>Encrypted Backup String:</Text>
+                  <Text style={[styles.resultLabel, { color: colors.text }]}>
+                    Encrypted Backup String:
+                  </Text>
                   <View style={styles.actionButtonGroup}>
                     <TouchableOpacity
-                      style={[styles.copyChip, copied && styles.copyChipSuccess]}
+                      style={[
+                        styles.copyChip,
+                        { backgroundColor: colors.primaryLight },
+                        copied && { backgroundColor: colors.successLight },
+                      ]}
                       onPress={handleCopy}
                       activeOpacity={0.65}
                       hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     >
                       {copied ? (
-                        <CheckIcon size={14} color="#15803D" style={{ marginRight: 4 }} />
+                        <CheckIcon size={14} color={colors.primaryDark} style={{ marginRight: 4 }} />
                       ) : (
                         <CopyIcon size={14} color={colors.primaryDark} style={{ marginRight: 4 }} />
                       )}
-                      <Text style={[styles.copyChipText, copied && styles.copyChipTextSuccess]}>
+                      <Text
+                        style={[
+                          styles.copyChipText,
+                          { color: colors.primaryDark },
+                          copied && { color: colors.primaryDark },
+                        ]}
+                      >
                         {copied ? 'Copied!' : 'Copy'}
                       </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={styles.shareChip}
+                      style={[styles.shareChip, { backgroundColor: colors.secondaryLight }]}
                       onPress={handleShare}
                       activeOpacity={0.65}
                       hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     >
                       <ShareIcon size={14} color={colors.secondary} style={{ marginRight: 4 }} />
-                      <Text style={styles.shareChipText}>Share</Text>
+                      <Text style={[styles.shareChipText, { color: colors.secondary }]}>Share</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
 
                 {/* Selectable text box */}
-                <View style={styles.payloadBoxContainer}>
-                  <Text selectable={true} style={styles.payloadBox}>
+                <View
+                  style={[
+                    styles.payloadBoxContainer,
+                    {
+                      backgroundColor: colors.inputBg,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <Text
+                    selectable={true}
+                    style={[styles.payloadBox, { color: colors.text }]}
+                  >
                     {encryptedPayload}
                   </Text>
                 </View>
@@ -253,7 +334,7 @@ export function SyncBackupModal({ route, navigation }) {
                   />
                 </View>
 
-                <Text style={styles.helperText}>
+                <Text style={[styles.helperText, { color: colors.textMuted }]}>
                   Tap "Copy" above or select and copy this string to backup your data into a text file or notes app.
                 </Text>
               </View>
@@ -261,20 +342,24 @@ export function SyncBackupModal({ route, navigation }) {
           </Card>
         ) : (
           <Card style={styles.card}>
-            <Text style={styles.cardHeader}>Import / Restore Trip</Text>
-            <Text style={styles.cardSub}>
+            <Text style={[styles.cardHeader, { color: colors.text }]}>Import / Restore Trip</Text>
+            <Text style={[styles.cardSub, { color: colors.textMuted }]}>
               Paste an encrypted backup string generated from TripZen to restore or synchronize the trip.
             </Text>
 
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.fieldLabel}>Encrypted Backup String</Text>
+              <Text style={[styles.fieldLabel, { color: colors.text }]}>
+                Encrypted Backup String
+              </Text>
               <TouchableOpacity
-                style={styles.pasteChip}
+                style={[styles.pasteChip, { backgroundColor: colors.surface }]}
                 onPress={handlePasteFromClipboard}
                 activeOpacity={0.65}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
-                <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
+                <Text style={[styles.pasteChipText, { color: colors.secondary }]}>
+                  Paste from Clipboard
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -311,7 +396,6 @@ export function SyncBackupModal({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     padding: 20,
@@ -320,18 +404,15 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: colors.text,
     marginBottom: 4,
   },
   screenSubtitle: {
     fontSize: 13,
-    color: colors.textMuted,
     marginBottom: 16,
     lineHeight: 18,
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
     borderRadius: 12,
     padding: 4,
     marginBottom: 16,
@@ -343,7 +424,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   tabButtonActive: {
-    backgroundColor: '#FFFFFF',
     elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.05,
@@ -352,10 +432,8 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.textMuted,
   },
   tabTextActive: {
-    color: colors.text,
     fontWeight: '700',
   },
   card: {
@@ -364,19 +442,16 @@ const styles = StyleSheet.create({
   cardHeader: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 4,
   },
   cardSub: {
     fontSize: 12,
-    color: colors.textMuted,
     marginBottom: 16,
     lineHeight: 16,
   },
   resultContainer: {
     marginTop: 20,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
     paddingTop: 16,
   },
   sectionHeaderRow: {
@@ -388,12 +463,10 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.text,
   },
   resultLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.text,
   },
   actionButtonGroup: {
     flexDirection: 'row',
@@ -402,26 +475,17 @@ const styles = StyleSheet.create({
   copyChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
   },
-  copyChipSuccess: {
-    backgroundColor: '#DCFCE7',
-  },
   copyChipText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.primaryDark,
-  },
-  copyChipTextSuccess: {
-    color: '#15803D',
   },
   shareChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondaryLight,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
@@ -429,40 +493,32 @@ const styles = StyleSheet.create({
   shareChipText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.secondary,
   },
   pasteChip: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: '#F1F5F9',
   },
   pasteChipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.secondary,
   },
   qrWrapper: {
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: 16,
   },
   payloadBoxContainer: {
-    backgroundColor: '#F1F5F9',
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: colors.border,
     maxHeight: 120,
     marginBottom: 12,
   },
   payloadBox: {
     fontSize: 11,
-    color: colors.text,
     fontFamily: 'monospace',
     lineHeight: 16,
   },
@@ -474,7 +530,6 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: 11,
-    color: colors.textMuted,
     lineHeight: 15,
   },
 });

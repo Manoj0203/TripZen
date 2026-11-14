@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 export function Button({
   title,
@@ -13,28 +13,33 @@ export function Button({
   style,
   textStyle,
 }) {
+  const { colors } = useTheme();
+
   const getContainerStyle = () => {
     switch (variant) {
       case 'secondary':
-        return styles.secondaryContainer;
+        return [styles.secondaryContainer, { backgroundColor: colors.secondaryLight }];
       case 'outline':
-        return styles.outlineContainer;
+        return [
+          styles.outlineContainer,
+          { backgroundColor: colors.card, borderColor: colors.primary },
+        ];
       case 'danger':
-        return styles.dangerContainer;
+        return [styles.dangerContainer, { backgroundColor: colors.danger }];
       case 'primary':
       default:
-        return styles.primaryContainer;
+        return [styles.primaryContainer, { backgroundColor: colors.primary }];
     }
   };
 
   const getTextStyle = () => {
     switch (variant) {
       case 'outline':
-        return styles.outlineText;
+        return [styles.outlineText, { color: colors.primary }];
       case 'danger':
         return styles.dangerText;
       case 'secondary':
-        return styles.secondaryText;
+        return [styles.secondaryText, { color: colors.secondary }];
       case 'primary':
       default:
         return styles.primaryText;
@@ -91,20 +96,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 24,
   },
-  primaryContainer: {
-    backgroundColor: colors.primary,
-  },
-  secondaryContainer: {
-    backgroundColor: colors.secondaryLight,
-  },
+  primaryContainer: {},
+  secondaryContainer: {},
   outlineContainer: {
-    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: colors.primary,
   },
-  dangerContainer: {
-    backgroundColor: colors.danger,
-  },
+  dangerContainer: {},
   disabledContainer: {
     opacity: 0.5,
   },
@@ -123,12 +120,8 @@ const styles = StyleSheet.create({
   primaryText: {
     color: '#FFFFFF',
   },
-  secondaryText: {
-    color: colors.secondary,
-  },
-  outlineText: {
-    color: colors.primary,
-  },
+  secondaryText: {},
+  outlineText: {},
   dangerText: {
     color: '#FFFFFF',
   },

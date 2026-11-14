@@ -1,15 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
-import { colors } from '../theme/colors';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { getSettlementDashboard, recordSettlement, getParticipants, deleteSettlement } from '../services/tripService';
+import {
+  getSettlementDashboard,
+  recordSettlement,
+  getParticipants,
+  deleteSettlement,
+} from '../services/tripService';
 import { formatPaiseToRupees } from '../logic/currencyFormatter';
 import { CheckCircleIcon, ArrowRightSimple, TrashIcon } from '../components/Icons';
 
 export function SettlementsScreen({ route, navigation }) {
   const { tripId, tripType } = route.params;
   const isFriends = tripType === 'friends';
+  const { colors, isDark } = useTheme();
+  const { showAlert } = useAlert();
 
   const [dashboard, setDashboard] = useState({
     netBalances: {},
@@ -25,11 +33,13 @@ export function SettlementsScreen({ route, navigation }) {
         getSettlementDashboard(tripId),
         getParticipants(tripId),
       ]);
-      setDashboard(dash || {
-        netBalances: {},
-        suggestedSettlements: [],
-        recordedSettlements: [],
-      });
+      setDashboard(
+        dash || {
+          netBalances: {},
+          suggestedSettlements: [],
+          recordedSettlements: [],
+        }
+      );
       setParticipants(parts || []);
     } catch (e) {
       console.error(e);
@@ -64,13 +74,14 @@ export function SettlementsScreen({ route, navigation }) {
     const toName = getName(settlement.to);
     const amountStr = formatPaiseToRupees(settlement.amountPaise);
 
-    Alert.alert(
-      'Confirm Settlement',
-      `Record payment of ${amountStr} from ${fromName} to ${toName}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
+    showAlert({
+      title: 'Confirm Settlement',
+      message: `Record payment of ${amountStr} from ${fromName} to ${toName}?`,
+      type: 'info',
+      buttons: [
         {
           text: 'Mark as Settled (Cash)',
+          variant: 'primary',
           onPress: async () => {
             await recordSettlement({
               tripId,
@@ -84,6 +95,7 @@ export function SettlementsScreen({ route, navigation }) {
         },
         {
           text: 'Mark as Settled (Online)',
+          variant: 'secondary',
           onPress: async () => {
             await recordSettlement({
               tripId,
@@ -95,84 +107,106 @@ export function SettlementsScreen({ route, navigation }) {
             await loadData();
           },
         },
-      ]
-    );
+        { text: 'Cancel', style: 'cancel' },
+      ],
+    });
   };
 
   const { netBalances, suggestedSettlements, recordedSettlements } = dashboard;
   const participantIds = Object.keys(netBalances);
 
   const handleDeleteSettlement = (rec) => {
-    Alert.alert(
-      'Delete Payment Record',
-      `Undo and remove the payment of ${formatPaiseToRupees(rec.amountPaise)} from ${getName(rec.fromFamilyId)} to ${getName(rec.toFamilyId)}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteSettlement(rec.id);
-              await loadData();
-            } catch (e) {
-              console.error(e);
-              Alert.alert('Error', 'Failed to delete payment record.');
-            }
-          },
-        },
-      ]
-    );
+    showAlert({
+      title: 'Delete Payment Record',
+      message: `Undo and remove the payment of ${formatPaiseToRupees(
+        rec.amountPaise
+      )} from ${getName(rec.fromFamilyId)} to ${getName(rec.toFamilyId)}?`,
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await deleteSettlement(rec.id);
+          await loadData();
+        } catch (e) {
+          console.error(e);
+          showAlert({
+            title: 'Error',
+            message: 'Failed to delete payment record.',
+            type: 'danger',
+          });
+        }
+      },
+    });
   };
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
     >
-      <Text style={styles.sectionHeader}>Net Balances</Text>
-      <Text style={styles.sectionSub}>Overall financial standing for each participant</Text>
+      {/* 1. Net Balances Section */}
+      <Text style={[styles.sectionHeader, { color: colors.text }]}>
+        {isFriends ? 'Friends Net Balances' : 'Families Net Balances'}
+      </Text>
+      <Text style={[styles.sectionSub, { color: colors.textMuted }]}>
+        Positive (+) means owed money; Negative (-) means owes money.
+      </Text>
 
       {participantIds.length === 0 ? (
         <Card style={styles.emptyCard}>
-          <Text style={styles.emptyText}>No balances to display yet.</Text>
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+            No expenses logged yet to calculate balances.
+          </Text>
         </Card>
       ) : (
         <Card style={styles.balancesCard}>
-          {participantIds.map(id => {
-            const bal = netBalances[id] || 0;
-            const isPositive = bal > 0;
-            const isZero = bal === 0;
+          {participantIds.map(familyId => {
+            const balPaise = netBalances[familyId] || 0;
+            const isOwed = balPaise > 0;
+            const isZero = balPaise === 0;
 
             return (
-              <View key={id} style={styles.balanceRow}>
-                <Text style={styles.balanceName}>{getName(id)}</Text>
+              <View
+                key={familyId}
+                style={[styles.balanceRow, { borderBottomColor: colors.border }]}
+              >
+                <Text style={[styles.balanceName, { color: colors.text }]}>
+                  {getName(familyId)}
+                </Text>
                 <View
                   style={[
                     styles.balanceBadge,
                     isZero
-                      ? styles.badgeSettled
-                      : isPositive
-                      ? styles.badgeOwed
-                      : styles.badgeOwes,
+                      ? { backgroundColor: colors.surface }
+                      : isOwed
+                      ? { backgroundColor: colors.successLight }
+                      : { backgroundColor: colors.dangerLight },
                   ]}
                 >
                   <Text
                     style={[
                       styles.balanceBadgeText,
                       isZero
-                        ? styles.textSettled
-                        : isPositive
-                        ? styles.textOwed
-                        : styles.textOwes,
+                        ? { color: colors.textMuted }
+                        : isOwed
+                        ? { color: colors.primaryDark }
+                        : { color: colors.danger },
                     ]}
                   >
                     {isZero
                       ? 'Settled'
-                      : isPositive
-                      ? `gets back ${formatPaiseToRupees(bal)}`
-                      : `owes ${formatPaiseToRupees(-bal)}`}
+                      : isOwed
+                      ? `+${formatPaiseToRupees(balPaise)}`
+                      : `-${formatPaiseToRupees(Math.abs(balPaise))}`}
                   </Text>
                 </View>
               </View>
@@ -181,67 +215,88 @@ export function SettlementsScreen({ route, navigation }) {
         </Card>
       )}
 
-      {/* Suggested Simplified Settlements */}
-      <Text style={[styles.sectionHeader, { marginTop: 20 }]}>
-        Simplified Settlements (Min-Cash-Flow)
+      {/* 2. Suggested Settlements */}
+      <Text style={[styles.sectionHeader, { marginTop: 24, color: colors.text }]}>
+        Suggested Settlements
       </Text>
-      <Text style={styles.sectionSub}>Fewest payments needed to clear all debts</Text>
+      <Text style={[styles.sectionSub, { color: colors.textMuted }]}>
+        Minimum transactions calculated to square off all debts.
+      </Text>
 
       {suggestedSettlements.length === 0 ? (
-        <Card style={styles.allSettledCard}>
+        <Card
+          style={[
+            styles.allSettledCard,
+            {
+              backgroundColor: isDark ? '#064E3B' : '#F0FDF4',
+              borderColor: isDark ? '#059669' : '#BBF7D0',
+            },
+          ]}
+        >
           <View style={styles.celebrationIconContainer}>
             <CheckCircleIcon size={36} color={colors.primary} />
           </View>
-          <Text style={styles.allSettledTitle}>All Settled Up!</Text>
-          <Text style={styles.allSettledSub}>
-            Nobody owes any money. Everyone is square!
+          <Text style={[styles.allSettledTitle, { color: colors.primaryDark }]}>
+            All Settled Up!
+          </Text>
+          <Text style={[styles.allSettledSub, { color: colors.textMuted }]}>
+            No outstanding balances between {isFriends ? 'friends' : 'families'}.
           </Text>
         </Card>
       ) : (
-        suggestedSettlements.map((s, idx) => (
-          <Card key={idx} style={styles.settlementCard}>
+        suggestedSettlements.map((settlement, index) => (
+          <Card key={index} style={styles.settlementCard}>
             <View style={styles.settlementDetails}>
               <View style={styles.partiesRow}>
-                <Text style={styles.payerParty}>{getName(s.from)}</Text>
-                <View style={styles.arrowParty}>
-                  <Text style={styles.paysText}>pays</Text>
-                  <ArrowRightSimple size={14} color={colors.textMuted} />
+                <Text style={[styles.payerParty, { color: colors.danger }]}>
+                  {getName(settlement.from)}
+                </Text>
+                <View style={[styles.arrowParty, { backgroundColor: colors.surface }]}>
+                  <Text style={[styles.paysText, { color: colors.textMuted }]}>pays</Text>
+                  <ArrowRightSimple size={12} color={colors.textMuted} />
                 </View>
-                <Text style={styles.receiverParty}>{getName(s.to)}</Text>
+                <Text style={[styles.receiverParty, { color: colors.primaryDark }]}>
+                  {getName(settlement.to)}
+                </Text>
               </View>
-              <Text style={styles.settlementAmount}>
-                {formatPaiseToRupees(s.amountPaise)}
+              <Text style={[styles.settlementAmount, { color: colors.text }]}>
+                {formatPaiseToRupees(settlement.amountPaise)}
               </Text>
             </View>
+
             <Button
-              title="Mark as Settled"
+              title="Record Settlement"
               size="sm"
-              variant="outline"
               style={styles.settleBtn}
-              onPress={() => handleSettle(s)}
+              onPress={() => handleSettle(settlement)}
             />
           </Card>
         ))
       )}
 
-      {/* History of Past Recorded Settlements */}
+      {/* 3. Recorded Settlements History */}
       {recordedSettlements.length > 0 ? (
         <>
-          <Text style={[styles.sectionHeader, { marginTop: 24 }]}>Payment History</Text>
+          <Text style={[styles.sectionHeader, { marginTop: 24, color: colors.text }]}>
+            Payment History
+          </Text>
           {recordedSettlements.map(rec => (
-            <Card key={rec.id} style={styles.historyCard}>
+            <Card
+              key={rec.id}
+              style={[styles.historyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            >
               <View style={styles.historyRow}>
                 <View style={styles.historyInfo}>
-                  <Text style={styles.historyTitle}>
+                  <Text style={[styles.historyTitle, { color: colors.text }]}>
                     {getName(rec.fromFamilyId)} paid {getName(rec.toFamilyId)}
                   </Text>
-                  <Text style={styles.historyDate}>
+                  <Text style={[styles.historyDate, { color: colors.textMuted }]}>
                     {rec.paymentMethod.toUpperCase()} •{' '}
                     {new Date(rec.settledAt).toLocaleDateString()}
                   </Text>
                 </View>
                 <View style={styles.historyActionRight}>
-                  <Text style={styles.historyAmount}>
+                  <Text style={[styles.historyAmount, { color: colors.text }]}>
                     {formatPaiseToRupees(rec.amountPaise)}
                   </Text>
                   <TouchableOpacity
@@ -265,7 +320,6 @@ export function SettlementsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     padding: 16,
@@ -274,11 +328,9 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 16,
     fontWeight: '800',
-    color: colors.text,
   },
   sectionSub: {
     fontSize: 12,
-    color: colors.textMuted,
     marginBottom: 10,
     marginTop: 2,
   },
@@ -292,45 +344,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
   },
   balanceName: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.text,
   },
   balanceBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
-  badgeOwed: {
-    backgroundColor: '#DCFCE7',
-  },
-  badgeOwes: {
-    backgroundColor: '#FEE2E2',
-  },
-  badgeSettled: {
-    backgroundColor: '#F1F5F9',
-  },
   balanceBadgeText: {
     fontSize: 12,
     fontWeight: '700',
   },
-  textOwed: {
-    color: '#15803D',
-  },
-  textOwes: {
-    color: '#B91C1C',
-  },
-  textSettled: {
-    color: colors.textMuted,
-  },
   allSettledCard: {
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
+    borderWidth: 1,
   },
   celebrationIconContainer: {
     marginBottom: 8,
@@ -338,11 +369,9 @@ const styles = StyleSheet.create({
   allSettledTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: colors.primaryDark,
   },
   allSettledSub: {
     fontSize: 13,
-    color: colors.textMuted,
     marginTop: 4,
   },
   settlementCard: {
@@ -364,14 +393,12 @@ const styles = StyleSheet.create({
   payerParty: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#B91C1C',
   },
   arrowParty: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     marginHorizontal: 8,
-    backgroundColor: '#F1F5F9',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -379,17 +406,14 @@ const styles = StyleSheet.create({
   paysText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.textMuted,
   },
   receiverParty: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#15803D',
   },
   settlementAmount: {
     fontSize: 16,
     fontWeight: '800',
-    color: colors.text,
     marginLeft: 8,
   },
   settleBtn: {
@@ -398,7 +422,6 @@ const styles = StyleSheet.create({
   historyCard: {
     padding: 12,
     marginBottom: 8,
-    backgroundColor: '#F8FAFC',
   },
   historyRow: {
     flexDirection: 'row',
@@ -416,23 +439,17 @@ const styles = StyleSheet.create({
   deletePaymentBtn: {
     padding: 2,
   },
-  deletePaymentText: {
-    fontSize: 12,
-  },
   historyTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.text,
   },
   historyDate: {
     fontSize: 11,
-    color: colors.textMuted,
     marginTop: 2,
   },
   historyAmount: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.text,
   },
   emptyCard: {
     padding: 16,
@@ -440,6 +457,5 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
-    color: colors.textMuted,
   },
 });

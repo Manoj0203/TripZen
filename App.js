@@ -2,10 +2,39 @@ import './src/utils/cryptoPolyfill';
 import React, { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { initDatabase } from './src/db/client';
-import { colors } from './src/theme/colors';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { AlertProvider } from './src/context/AlertContext';
+
+function MainApp() {
+  const { colors, isDark } = useTheme();
+
+  const navTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.headerBg,
+      text: colors.text,
+      border: colors.border,
+    },
+  };
+
+  return (
+    <>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.headerBg}
+      />
+      <NavigationContainer theme={navTheme}>
+        <RootNavigator />
+      </NavigationContainer>
+    </>
+  );
+}
 
 function App() {
   const [dbReady, setDbReady] = useState(false);
@@ -33,17 +62,18 @@ function App() {
   if (!dbReady) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color="#10B981" />
       </View>
     );
   }
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <ThemeProvider>
+        <AlertProvider>
+          <MainApp />
+        </AlertProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
@@ -54,17 +84,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
   },
   errorText: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.danger,
+    color: '#EF4444',
     marginBottom: 8,
   },
   errorSub: {
     fontSize: 13,
-    color: colors.textMuted,
+    color: '#64748B',
     textAlign: 'center',
   },
 });
