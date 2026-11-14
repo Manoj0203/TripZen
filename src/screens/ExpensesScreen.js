@@ -87,46 +87,52 @@ export function ExpensesScreen({ route, navigation }) {
 
   const renderExpenseItem = ({ item }) => {
     return (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => handleEditExpense(item)}
-      >
-        <Card style={styles.expenseCard}>
-          <View style={styles.expenseHeader}>
-            <View style={styles.titleInfo}>
-              <Text style={styles.expenseTitle}>{item.title}</Text>
-              <Text style={styles.expenseSub}>
-                Paid by <Text style={styles.payerBold}>{getPayerName(item.payerFamilyId)}</Text> •{' '}
-                {new Date(item.expenseDate).toLocaleDateString()}
-              </Text>
-            </View>
+      <Card style={styles.expenseCard}>
+        <View style={styles.expenseHeader}>
+          <TouchableOpacity
+            style={styles.titleInfo}
+            activeOpacity={0.7}
+            onPress={() => handleEditExpense(item)}
+          >
+            <Text style={styles.expenseTitle}>{item.title}</Text>
+            <Text style={styles.expenseSub}>
+              Paid by <Text style={styles.payerBold}>{getPayerName(item.payerFamilyId)}</Text> •{' '}
+              {new Date(item.expenseDate).toLocaleDateString()}
+            </Text>
+          </TouchableOpacity>
 
-            <View style={styles.amountActionCol}>
+          <View style={styles.amountActionCol}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => handleEditExpense(item)}
+            >
               <Text style={styles.expenseAmount}>
                 {formatPaiseToRupees(item.amountPaise)}
               </Text>
+            </TouchableOpacity>
 
-              <View style={styles.actionButtonGroup}>
-                <TouchableOpacity
-                  style={styles.actionBtn}
-                  onPress={() => handleEditExpense(item)}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <EditIcon size={15} color={colors.textMuted} />
-                </TouchableOpacity>
+            <View style={styles.actionButtonGroup}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                activeOpacity={0.6}
+                onPress={() => handleEditExpense(item)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <EditIcon size={15} color={colors.textMuted} />
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.actionBtn}
-                  onPress={() => handleDeleteExpense(item)}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <TrashIcon size={15} color={colors.danger} />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                activeOpacity={0.6}
+                onPress={() => handleDeleteExpense(item)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <TrashIcon size={15} color={colors.danger} />
+              </TouchableOpacity>
             </View>
           </View>
-        </Card>
-      </TouchableOpacity>
+        </View>
+      </Card>
     );
   };
 

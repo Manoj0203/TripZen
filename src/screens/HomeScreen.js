@@ -166,17 +166,18 @@ export function HomeScreen({ navigation }) {
   const renderTripItem = ({ item }) => {
     const isFriends = item.tripType === 'friends';
     return (
-      <TouchableOpacity
-        activeOpacity={0.75}
-        onPress={() =>
-          navigation.navigate('TripDetails', {
-            tripId: item.id,
-            tripName: item.name,
-            tripType: item.tripType,
-          })
-        }
-      >
-        <Card style={styles.tripCard}>
+      <Card style={styles.tripCard}>
+        {/* Card Body Touchable - Opens Trip */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() =>
+            navigation.navigate('TripDetails', {
+              tripId: item.id,
+              tripName: item.name,
+              tripType: item.tripType,
+            })
+          }
+        >
           <View style={styles.cardHeader}>
             <Text style={styles.tripName}>{item.name}</Text>
             <View style={[styles.badge, isFriends ? styles.badgeFriends : styles.badgeFamily]}>
@@ -194,42 +195,54 @@ export function HomeScreen({ navigation }) {
           {item.description ? (
             <Text style={styles.description}>{item.description}</Text>
           ) : null}
+        </TouchableOpacity>
 
-          <View style={styles.cardFooter}>
-            <Text style={styles.footerDate}>
-              Created {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently'}
-            </Text>
+        {/* Action Footer - Sibling row outside navigation touchable */}
+        <View style={styles.cardFooter}>
+          <Text style={styles.footerDate}>
+            Created {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently'}
+          </Text>
 
-            <View style={styles.cardActionRow}>
-              {/* Edit Trip Button */}
-              <TouchableOpacity
-                activeOpacity={0.6}
-                onPress={() => handleOpenEdit(item)}
-                style={styles.actionIconBtn}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <EditIcon size={16} color={colors.textMuted} />
-              </TouchableOpacity>
+          <View style={styles.cardActionRow}>
+            {/* Edit Trip Button */}
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() => handleOpenEdit(item)}
+              style={styles.actionIconBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <EditIcon size={16} color={colors.textMuted} />
+            </TouchableOpacity>
 
-              {/* Delete Trip Button */}
-              <TouchableOpacity
-                activeOpacity={0.6}
-                onPress={() => handleDeleteTrip(item)}
-                style={styles.actionIconBtn}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <TrashIcon size={16} color={colors.danger} />
-              </TouchableOpacity>
+            {/* Delete Trip Button */}
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() => handleDeleteTrip(item)}
+              style={styles.actionIconBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <TrashIcon size={16} color={colors.danger} />
+            </TouchableOpacity>
 
-              {/* View Arrow */}
-              <View style={styles.viewRow}>
-                <Text style={styles.arrowText}>View</Text>
-                <ArrowRightIcon size={14} color={colors.primary} style={{ marginLeft: 2 }} />
-              </View>
-            </View>
+            {/* View Arrow */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.viewRow}
+              onPress={() =>
+                navigation.navigate('TripDetails', {
+                  tripId: item.id,
+                  tripName: item.name,
+                  tripType: item.tripType,
+                })
+              }
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.arrowText}>View</Text>
+              <ArrowRightIcon size={14} color={colors.primary} style={{ marginLeft: 2 }} />
+            </TouchableOpacity>
           </View>
-        </Card>
-      </TouchableOpacity>
+        </View>
+      </Card>
     );
   };
 
@@ -383,7 +396,7 @@ export function HomeScreen({ navigation }) {
                 value={importPayload}
                 onChangeText={setImportPayload}
                 multiline
-                numberOfLines={4}
+                numberOfLines={3}
                 containerStyle={styles.importPayloadContainer}
                 inputStyle={styles.importPayloadInput}
               />
@@ -395,27 +408,28 @@ export function HomeScreen({ navigation }) {
                 onChangeText={setImportPassword}
                 secureTextEntry
               />
-            </ScrollView>
 
-            {/* Pinned Action Buttons */}
-            <View style={styles.modalButtonRow}>
-              <Button
-                title="Cancel"
-                variant="outline"
-                style={styles.modalBtn}
-                onPress={() => {
-                  setImportModalVisible(false);
-                  setImportPayload('');
-                  setImportPassword('');
-                }}
-              />
-              <Button
-                title="Import"
-                loading={importing}
-                style={styles.modalBtn}
-                onPress={handleImportTrip}
-              />
-            </View>
+              {/* Action Buttons inside scroll body so keyboard never hides or drops clicks */}
+              <View style={styles.modalButtonRow}>
+                <Button
+                  title="Cancel"
+                  variant="outline"
+                  style={styles.modalBtn}
+                  onPress={() => {
+                    setImportModalVisible(false);
+                    setImportPayload('');
+                    setImportPassword('');
+                  }}
+                />
+                <Button
+                  title="Import Trip"
+                  icon={<DownloadIcon size={14} color="#FFFFFF" />}
+                  loading={importing}
+                  style={styles.modalBtn}
+                  onPress={handleImportTrip}
+                />
+              </View>
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -440,16 +454,18 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   headerTitleContainer: {
-    flex: 1,
-    marginRight: 8,
+    flexShrink: 1,
+    marginRight: 12,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexShrink: 0,
+    zIndex: 10,
   },
   importHeaderBtn: {
-    marginRight: 4,
+    marginRight: 2,
   },
   title: {
     fontSize: 24,
@@ -594,15 +610,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
-    width: '100%',
+    width: '96%',
     maxWidth: 480,
-    maxHeight: '92%',
+    maxHeight: '94%',
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 6,
-    display: 'flex',
-    flexDirection: 'column',
   },
   importScrollBody: {
     flexShrink: 1,
@@ -615,8 +629,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   importPayloadInput: {
-    height: 85,
-    maxHeight: 90,
+    height: 80,
+    maxHeight: 85,
     fontSize: 12,
     lineHeight: 16,
   },

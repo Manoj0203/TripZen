@@ -1,15 +1,40 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, ScrollView, Alert, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { colors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { importTripEncrypted } from '../services/tripService';
+import { DownloadIcon } from '../components/Icons';
+import { getFromClipboard } from '../utils/clipboard';
 
 export function ImportTripScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [encryptedData, setEncryptedData] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      const content = await getFromClipboard();
+      if (content) {
+        setEncryptedData(content);
+      } else {
+        Alert.alert('Clipboard Empty', 'No text found in clipboard.');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleImport = async () => {
     if (!encryptedData.trim()) {
@@ -48,43 +73,70 @@ export function ImportTripScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.screenTitle}>Import Trip</Text>
-      <Text style={styles.screenSubtitle}>
-        Paste an encrypted trip backup string to restore a trip and all its expenses offline.
-      </Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+      style={styles.keyboardContainer}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.screenTitle}>Import Trip</Text>
+        <Text style={styles.screenSubtitle}>
+          Paste an encrypted trip backup string to restore a trip and all its expenses offline.
+        </Text>
 
-      <Card style={styles.card}>
-        <Input
-          label="Decryption Password"
-          placeholder="Password set during export"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <Card style={styles.card}>
+          <Input
+            label="Decryption Password"
+            placeholder="Password set during export"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-        <Text style={styles.inputLabel}>Encrypted Backup String</Text>
-        <TextInput
-          style={styles.payloadBox}
-          placeholder="Paste the Base64 encrypted string here..."
-          placeholderTextColor={colors.textMuted}
-          value={encryptedData}
-          onChangeText={setEncryptedData}
-          multiline
-        />
+          <View style={styles.labelRow}>
+            <Text style={styles.inputLabel}>Encrypted Backup String</Text>
+            <TouchableOpacity
+              style={styles.pasteChip}
+              onPress={handlePasteFromClipboard}
+              activeOpacity={0.65}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <Text style={styles.pasteChipText}>Paste from Clipboard</Text>
+            </TouchableOpacity>
+          </View>
 
-        <Button
-          title="Decrypt & Import Trip"
-          loading={loading}
-          onPress={handleImport}
-          style={styles.importBtn}
-        />
-      </Card>
-    </ScrollView>
+          <TextInput
+            style={styles.payloadBox}
+            placeholder="Paste the Base64 encrypted string here..."
+            placeholderTextColor={colors.textMuted}
+            value={encryptedData}
+            onChangeText={setEncryptedData}
+            multiline
+            numberOfLines={4}
+          />
+
+          <Button
+            title="Decrypt & Import Trip"
+            icon={<DownloadIcon size={16} color="#FFFFFF" />}
+            loading={loading}
+            onPress={handleImport}
+            style={styles.importBtn}
+          />
+        </Card>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -108,19 +160,36 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
   },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   inputLabel: {
     fontSize: 13,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 6,
+  },
+  pasteChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: '#F1F5F9',
+  },
+  pasteChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.secondary,
   },
   payloadBox: {
-    height: 140,
+    height: 120,
+    maxHeight: 140,
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
-    fontSize: 13,
+    fontSize: 12,
     color: colors.text,
     backgroundColor: '#F8FAFC',
     textAlignVertical: 'top',

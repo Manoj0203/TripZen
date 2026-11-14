@@ -43,9 +43,10 @@ export function Button({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.75}
+      activeOpacity={0.7}
       onPress={onPress}
       disabled={disabled || loading}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={[
         styles.baseContainer,
         styles[`size_${size}`],
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondaryLight,
   },
   outlineContainer: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
     borderColor: colors.primary,
   },
