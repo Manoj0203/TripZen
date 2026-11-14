@@ -2,6 +2,7 @@
  * @format
  */
 
+import './src/utils/interactionManagerPolyfill';
 import './src/utils/cryptoPolyfill';
 import { AppRegistry } from 'react-native';
 import App from './App';

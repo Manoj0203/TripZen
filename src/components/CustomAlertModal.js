@@ -1,3 +1,4 @@
+import '../utils/interactionManagerPolyfill';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Modal from 'react-native-modal';

@@ -1,3 +1,4 @@
+import './src/utils/interactionManagerPolyfill';
 import './src/utils/cryptoPolyfill';
 import React, { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
