@@ -141,8 +141,8 @@ export function ExpensesScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Clean Summary Header */}
-      <View style={[styles.summaryBar, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
+      {/* Summary Card */}
+      <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View>
           <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>Total spent</Text>
           <Text style={[styles.summaryAmount, { color: colors.primaryDark }]}>
@@ -198,10 +198,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  summaryBar: {
-    paddingHorizontal: 20,
+  summaryCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 4,
+    paddingHorizontal: 18,
     paddingVertical: 14,
-    borderBottomWidth: 1,
+    borderRadius: 16,
+    borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -218,7 +222,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   list: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   expenseCard: {
     padding: 14,

@@ -24,6 +24,36 @@ export function TripTabs({ route, navigation }) {
   const insets = React.useContext(SafeAreaInsetsContext) || { top: 0, bottom: 0, left: 0, right: 0 };
   const bottomInset = Math.max(insets.bottom, 6);
 
+  const renderHeaderTitle = (title) => (
+    <View style={styles.headerTitleContainer}>
+      <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
+      <View style={styles.headerSubtitleRow}>
+        <Text style={[styles.headerSubtitle, { color: colors.textMuted }]} numberOfLines={1}>
+          {tripName || 'Trip Details'}
+        </Text>
+        <View
+          style={[
+            styles.badgePill,
+            {
+              backgroundColor: isFriends ? colors.secondaryLight : colors.primaryLight,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.badgePillText,
+              {
+                color: isFriends ? colors.secondary : colors.primaryDark,
+              },
+            ]}
+          >
+            {isFriends ? 'Friends' : 'Family'}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -31,56 +61,32 @@ export function TripTabs({ route, navigation }) {
           backgroundColor: colors.headerBg,
           elevation: 0,
           shadowOpacity: 0,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
+          borderBottomWidth: 0,
         },
-        headerTitle: () => (
-          <View style={styles.titleContainer}>
-            <Text style={[styles.tripTitleText, { color: colors.text }]} numberOfLines={1}>
-              {tripName || 'Trip Details'}
-            </Text>
-            <View
-              style={[
-                styles.badgePill,
-                {
-                  backgroundColor: isFriends ? colors.secondaryLight : colors.primaryLight,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.badgePillText,
-                  {
-                    color: isFriends ? colors.secondary : colors.primaryDark,
-                  },
-                ]}
-              >
-                {isFriends ? 'Friends' : 'Family'}
-              </Text>
-            </View>
-          </View>
-        ),
+        headerShadowVisible: false,
+        headerTintColor: colors.primary,
+        headerTitleAlign: 'left',
         headerLeft: () => (
           <TouchableOpacity
-            style={[styles.backBtn, { backgroundColor: colors.surface }]}
+            style={styles.backBtn}
             onPress={() => navigation.navigate('Home')}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.6}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <ChevronLeftIcon size={20} color={colors.text} />
+            <ChevronLeftIcon size={24} color={colors.primary} />
           </TouchableOpacity>
         ),
         headerRight: () => (
           <View style={styles.rightActionsRow}>
             {/* Sync / Backup Button */}
             <TouchableOpacity
-              style={[styles.backupHeaderBtn, { backgroundColor: colors.surface }]}
+              style={styles.backupHeaderBtn}
               onPress={() => navigation.navigate('SyncBackup', { tripId, tripName })}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              activeOpacity={0.6}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <SyncIcon size={14} color={colors.secondary} style={{ marginRight: 5 }} />
-              <Text style={[styles.backupHeaderText, { color: colors.secondary }]}>
+              <SyncIcon size={16} color={colors.primary} style={{ marginRight: 4 }} />
+              <Text style={[styles.backupHeaderText, { color: colors.primary }]}>
                 Sync
               </Text>
             </TouchableOpacity>
@@ -108,6 +114,7 @@ export function TripTabs({ route, navigation }) {
         initialParams={{ tripId, tripName, tripType }}
         options={{
           tabBarLabel: 'Expenses',
+          headerTitle: () => renderHeaderTitle('Expenses'),
           tabBarIcon: ({ color }) => <CreditCardIcon size={20} color={color} />,
         }}
       />
@@ -118,6 +125,7 @@ export function TripTabs({ route, navigation }) {
         initialParams={{ tripId, tripName, tripType }}
         options={{
           tabBarLabel: isFriends ? 'Friends' : 'Families',
+          headerTitle: () => renderHeaderTitle(isFriends ? 'Friends' : 'Families'),
           tabBarIcon: ({ color }) =>
             isFriends ? (
               <UsersIcon size={20} color={color} />
@@ -133,6 +141,7 @@ export function TripTabs({ route, navigation }) {
         initialParams={{ tripId, tripName, tripType }}
         options={{
           tabBarLabel: 'Settlements',
+          headerTitle: () => renderHeaderTitle('Settlements'),
           tabBarIcon: ({ color }) => <ScaleIcon size={20} color={color} />,
         }}
       />
@@ -142,46 +151,53 @@ export function TripTabs({ route, navigation }) {
 
 const styles = StyleSheet.create({
   backBtn: {
-    marginLeft: 14,
-    padding: 6,
-    borderRadius: 10,
+    marginLeft: 16,
+    padding: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  titleContainer: {
+  headerTitleContainer: {
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  headerSubtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    maxWidth: 220,
-    gap: 8,
+    gap: 6,
+    marginTop: 2,
   },
-  tripTitleText: {
-    fontSize: 17,
-    fontWeight: '800',
-    flexShrink: 1,
+  headerSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    maxWidth: 170,
   },
   badgePill: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 4,
   },
   badgePillText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
   },
   rightActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
   backupHeaderBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     flexDirection: 'row',
     alignItems: 'center',
   },
   backupHeaderText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
 });

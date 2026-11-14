@@ -55,8 +55,6 @@ describe('HomeScreen Initial State and Layout', () => {
 
     // Header elements
     expect(root.findByProps({ children: 'TripZen' })).toBeTruthy();
-    expect(root.findByProps({ children: 'Offline Group Expenses' })).toBeTruthy();
-    expect(root.findByProps({ children: 'Offline' })).toBeTruthy();
 
     // Hero Welcome Card elements
     expect(root.findByProps({ children: 'Plan & Split With Peace of Mind' })).toBeTruthy();

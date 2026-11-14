@@ -303,26 +303,19 @@ export function HomeScreen({ navigation }) {
   return (
     <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Modern Clean Header */}
-      <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.headerBg }]}>
         <View style={styles.headerRow}>
           <View style={styles.headerTitleCol}>
             <Text style={[styles.title, { color: colors.text }]}>TripZen</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
-              Offline Group Expenses
-            </Text>
           </View>
           <View style={styles.headerRightGroup}>
-            <View style={[styles.statusBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <View style={[styles.statusDot, { backgroundColor: colors.primary }]} />
-              <Text style={[styles.statusText, { color: colors.textMuted }]}>Offline</Text>
-            </View>
             <TouchableOpacity
-              style={[styles.settingsBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              style={styles.settingsBtn}
               onPress={() => navigation.navigate('Settings')}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <SettingsIcon size={18} color={colors.text} />
+              <SettingsIcon size={20} color={colors.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -645,9 +638,8 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 0,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
+    paddingTop: 4,
+    paddingBottom: 10,
   },
   headerRow: {
     flexDirection: 'row',
@@ -691,9 +683,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   settingsBtn: {
-    padding: 7,
-    borderRadius: 10,
-    borderWidth: 1,
+    padding: 6,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -888,7 +878,7 @@ const styles = StyleSheet.create({
   tripCountPill: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: 5,
   },
   tripCountText: {
     fontSize: 11,

@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { Text, View, TouchableOpacity } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import { ThemeProvider, useTheme } from '../src/theme/ThemeContext';
+import { AlertProvider } from '../src/context/AlertContext';
+import { TripTabs } from '../src/navigation/TripTabs';
 import { lightColors, darkColors } from '../src/theme/colors';
 
 // Test component consuming useTheme
@@ -53,5 +56,43 @@ describe('Dark Mode and Theme Switching with useColorScheme', () => {
 
     expect(statusText.props.children).toBe('light');
     expect(bgText.props.children).toBe(lightColors.background);
+  });
+
+  test('TripTabs renders with clean borderless header and title/subtitle', async () => {
+    let tree;
+    const mockRoute = {
+      params: {
+        tripId: 'test-trip-123',
+        tripName: 'Goa Holiday',
+        tripType: 'friends',
+      },
+    };
+    const mockNav = {
+      navigate: jest.fn(),
+      addListener: jest.fn(() => () => {}),
+    };
+
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(
+        <NavigationContainer>
+          <ThemeProvider>
+            <AlertProvider>
+              <TripTabs route={mockRoute} navigation={mockNav} />
+            </AlertProvider>
+          </ThemeProvider>
+        </NavigationContainer>
+      );
+    });
+
+    const root = tree.root;
+    const expensesTexts = root.findAllByProps({ children: 'Expenses' });
+    expect(expensesTexts.length).toBeGreaterThanOrEqual(1);
+    expect(root.findByProps({ children: 'Goa Holiday' })).toBeTruthy();
+    expect(root.findAllByProps({ children: 'Friends' }).length).toBeGreaterThanOrEqual(1);
+    expect(root.findByProps({ children: 'Sync' })).toBeTruthy();
+
+    await ReactTestRenderer.act(async () => {
+      tree.unmount();
+    });
   });
 });

@@ -418,11 +418,11 @@ export function ParticipantsScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Clean Participants Header Bar */}
-      <View style={[styles.topBar, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
+      {/* Participant Action Card */}
+      <View style={[styles.actionBarCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.topBarTitleContainer}>
           <Text style={[styles.pageTitle, { color: colors.text }]}>
-            {isFriends ? 'Friends' : 'Families'}
+            {isFriends ? 'Manage Friends' : 'Family Groups'}
           </Text>
           <Text style={[styles.pageSubtitle, { color: colors.textMuted }]}>
             {isFriends
@@ -585,10 +585,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  topBar: {
-    paddingHorizontal: 16,
+  actionBarCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 4,
+    paddingHorizontal: 18,
     paddingVertical: 14,
-    borderBottomWidth: 1,
+    borderRadius: 16,
+    borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -606,7 +610,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   list: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   friendCard: {
     padding: 14,

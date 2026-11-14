@@ -209,36 +209,36 @@ export function SettlementsScreen({ route, navigation }) {
 
   return (
     <View style={[styles.mainWrapper, { backgroundColor: colors.background }]}>
-      {/* Top Action Bar for Exporting / Sharing Summary Doc */}
-      <View style={[styles.topActionBar, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
-        <View style={styles.topActionTextCol}>
-          <Text style={[styles.topActionTitle, { color: colors.text }]}>Summary & Settlement</Text>
-          <Text style={[styles.topActionSub, { color: colors.textMuted }]}>
-            Export summary doc for WhatsApp or notes
-          </Text>
-        </View>
-        <Button
-          title="Share Doc"
-          icon={<FileTextIcon size={14} color="#FFFFFF" />}
-          size="sm"
-          loading={docLoading}
-          onPress={handleOpenSummaryDoc}
-        />
-      </View>
-
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.primary}
-          colors={[colors.primary]}
-        />
-      }
-    >
-      {/* 1. Net Balances Section */}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
+        {/* Top Action Card for Exporting / Sharing Summary Doc */}
+        <Card style={styles.shareDocCard}>
+          <View style={styles.topActionTextCol}>
+            <Text style={[styles.topActionTitle, { color: colors.text }]}>Trip Summary Doc</Text>
+            <Text style={[styles.topActionSub, { color: colors.textMuted }]}>
+              Export summary doc for WhatsApp or notes
+            </Text>
+          </View>
+          <Button
+            title="Share Doc"
+            icon={<FileTextIcon size={14} color="#FFFFFF" />}
+            size="sm"
+            loading={docLoading}
+            onPress={handleOpenSummaryDoc}
+          />
+        </Card>
+
+        {/* 1. Net Balances Section */}
       <Text style={[styles.sectionHeader, { color: colors.text }]}>
         {isFriends ? 'Balances' : 'Family Balances'}
       </Text>
@@ -452,10 +452,9 @@ const styles = StyleSheet.create({
   mainWrapper: {
     flex: 1,
   },
-  topActionBar: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+  shareDocCard: {
+    padding: 14,
+    marginBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
