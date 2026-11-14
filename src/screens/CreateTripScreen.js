@@ -14,7 +14,7 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { createTrip } from '../services/tripService';
-import { FamilyIcon, UsersIcon } from '../components/Icons';
+import { FamilyIcon, UsersIcon, DownloadIcon } from '../components/Icons';
 
 export function CreateTripScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -199,6 +199,17 @@ export function CreateTripScreen({ navigation }) {
           onPress={handleCreate}
           style={styles.createButton}
         />
+
+        <TouchableOpacity
+          style={[styles.importTripRow, { backgroundColor: colors.surface }]}
+          onPress={() => navigation.navigate('ImportTrip')}
+          activeOpacity={0.7}
+        >
+          <DownloadIcon size={16} color={colors.secondary} style={{ marginRight: 6 }} />
+          <Text style={[styles.importTripText, { color: colors.secondary }]}>
+            Import existing trip from backup
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -269,6 +280,19 @@ const styles = StyleSheet.create({
   radioSelected: {},
   createButton: {
     marginTop: 20,
+    marginBottom: 16,
+  },
+  importTripRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     marginBottom: 40,
+  },
+  importTripText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

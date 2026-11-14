@@ -299,23 +299,6 @@ export function HomeScreen({ navigation }) {
       {/* Modern Clean Header */}
       <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text }]}>TripZen</Text>
-
-        <View style={styles.headerActions}>
-          <Button
-            title="Import"
-            icon={<DownloadIcon size={14} color={colors.primary} />}
-            variant="outline"
-            size="sm"
-            style={styles.importHeaderBtn}
-            onPress={() => setImportModalVisible(true)}
-          />
-          <Button
-            title="New Trip"
-            icon={<PlusIcon size={14} color="#FFFFFF" />}
-            size="sm"
-            onPress={() => navigation.navigate('CreateTrip')}
-          />
-        </View>
       </View>
 
       {trips.length === 0 ? (
@@ -348,7 +331,7 @@ export function HomeScreen({ navigation }) {
           data={trips}
           keyExtractor={item => item.id}
           renderItem={renderTripItem}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: 96 }]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -359,6 +342,18 @@ export function HomeScreen({ navigation }) {
           }
         />
       )}
+
+      {/* Floating Action Button (FAB) in Bottom Right */}
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: colors.primary }]}
+        activeOpacity={0.8}
+        onPress={() => navigation.navigate('CreateTrip')}
+        onLongPress={() => setImportModalVisible(true)}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <PlusIcon size={20} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 6 }} />
+        <Text style={styles.fabText}>New Trip</Text>
+      </TouchableOpacity>
 
       {/* Edit Trip Modal */}
       <Modal
@@ -509,9 +504,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     paddingBottom: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     borderBottomWidth: 1,
   },
   title: {
@@ -519,14 +511,26 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.5,
   },
-  headerActions: {
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    flexShrink: 0,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 99,
   },
-  importHeaderBtn: {
-    marginRight: 2,
+  fabText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   list: {
     padding: 16,
