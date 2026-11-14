@@ -9,7 +9,7 @@ import Svg, {
   G,
 } from 'react-native-svg';
 
-export function CreditCardIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style }) {
+export function CreditCardIcon({ size = 20, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Rect x="2" y="5" width="20" height="14" rx="2" />
@@ -18,7 +18,7 @@ export function CreditCardIcon({ size = 20, color = '#0F172A', strokeWidth = 2, 
   );
 }
 
-export function FamilyIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style }) {
+export function FamilyIcon({ size = 20, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -27,7 +27,7 @@ export function FamilyIcon({ size = 20, color = '#0F172A', strokeWidth = 2, styl
   );
 }
 
-export function UsersIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style }) {
+export function UsersIcon({ size = 20, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -38,7 +38,7 @@ export function UsersIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style
   );
 }
 
-export function UserIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style }) {
+export function UserIcon({ size = 20, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -47,7 +47,7 @@ export function UserIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style 
   );
 }
 
-export function ScaleIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style }) {
+export function ScaleIcon({ size = 20, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
@@ -59,7 +59,7 @@ export function ScaleIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style
   );
 }
 
-export function ZapIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style }) {
+export function ZapIcon({ size = 20, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -67,7 +67,7 @@ export function ZapIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style }
   );
 }
 
-export function SyncIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style }) {
+export function SyncIcon({ size = 20, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
@@ -75,7 +75,7 @@ export function SyncIcon({ size = 20, color = '#0F172A', strokeWidth = 2, style 
   );
 }
 
-export function EditIcon({ size = 18, color = '#0F172A', strokeWidth = 2, style }) {
+export function EditIcon({ size = 18, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -105,7 +105,7 @@ export function PlusIcon({ size = 18, color = '#FFFFFF', strokeWidth = 2, style 
   );
 }
 
-export function CopyIcon({ size = 18, color = '#0F172A', strokeWidth = 2, style }) {
+export function CopyIcon({ size = 18, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
@@ -131,7 +131,7 @@ export function CheckCircleIcon({ size = 24, color = '#10B981', strokeWidth = 2,
   );
 }
 
-export function ShareIcon({ size = 18, color = '#0F172A', strokeWidth = 2, style }) {
+export function ShareIcon({ size = 18, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Circle cx="18" cy="5" r="3" />
@@ -170,7 +170,7 @@ export function CloseIcon({ size = 18, color = '#64748B', strokeWidth = 2, style
   );
 }
 
-export function QrCodeIcon({ size = 18, color = '#0F172A', strokeWidth = 2, style }) {
+export function QrCodeIcon({ size = 18, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Rect x="3" y="3" width="7" height="7" rx="1" />
@@ -202,7 +202,7 @@ export function ReceiptIcon({ size = 48, color = '#94A3B8', strokeWidth = 1.5, s
   );
 }
 
-export function DownloadIcon({ size = 18, color = '#0F172A', strokeWidth = 2, style }) {
+export function DownloadIcon({ size = 18, color = '#18181B', strokeWidth = 2, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -256,7 +256,7 @@ export function InfoIcon({ size = 24, color = '#3B82F6', strokeWidth = 2, style 
   );
 }
 
-export function ChevronLeftIcon({ size = 22, color = '#0F172A', strokeWidth = 2.5, style }) {
+export function ChevronLeftIcon({ size = 22, color = '#18181B', strokeWidth = 2.5, style }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
       <Polyline points="15 18 9 12 15 6" />

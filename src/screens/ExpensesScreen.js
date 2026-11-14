@@ -141,10 +141,10 @@ export function ExpensesScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Redesigned Summary Card Header */}
+      {/* Clean Summary Header */}
       <View style={[styles.summaryBar, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
         <View>
-          <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>Total Trip Spend</Text>
+          <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>Total spent</Text>
           <Text style={[styles.summaryAmount, { color: colors.primaryDark }]}>
             {formatPaiseToRupees(totalPaise)}
           </Text>
@@ -178,14 +178,14 @@ export function ExpensesScreen({ route, navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <ReceiptIcon size={52} color={colors.textMuted} style={styles.emptyIcon} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No Expenses Logged</Text>
+            <ReceiptIcon size={44} color={colors.textMuted} style={styles.emptyIcon} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>No expenses yet</Text>
             <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
               {participants.length === 0
                 ? isFriends
-                  ? 'Add friends first to start logging expenses!'
-                  : 'Add families first to start logging expenses!'
-                : 'Tap "Add Expense" above to record the first bill.'}
+                  ? 'Add friends first to start logging expenses.'
+                  : 'Add families first to start logging expenses.'
+                : 'Log your first expense to start tracking trip costs.'}
             </Text>
           </View>
         }

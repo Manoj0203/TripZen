@@ -155,10 +155,10 @@ export function SettlementsScreen({ route, navigation }) {
     >
       {/* 1. Net Balances Section */}
       <Text style={[styles.sectionHeader, { color: colors.text }]}>
-        {isFriends ? 'Friends Net Balances' : 'Families Net Balances'}
+        {isFriends ? 'Balances' : 'Family Balances'}
       </Text>
       <Text style={[styles.sectionSub, { color: colors.textMuted }]}>
-        Positive (+) means owed money; Negative (-) means owes money.
+        Summary of who owes or is owed money
       </Text>
 
       {participantIds.length === 0 ? (
@@ -220,7 +220,7 @@ export function SettlementsScreen({ route, navigation }) {
         Suggested Settlements
       </Text>
       <Text style={[styles.sectionSub, { color: colors.textMuted }]}>
-        Minimum transactions calculated to square off all debts.
+        Simplified payments to clear all debts
       </Text>
 
       {suggestedSettlements.length === 0 ? (
@@ -228,8 +228,8 @@ export function SettlementsScreen({ route, navigation }) {
           style={[
             styles.allSettledCard,
             {
-              backgroundColor: isDark ? '#064E3B' : '#F0FDF4',
-              borderColor: isDark ? '#059669' : '#BBF7D0',
+              backgroundColor: colors.successLight,
+              borderColor: colors.border,
             },
           ]}
         >
@@ -237,7 +237,7 @@ export function SettlementsScreen({ route, navigation }) {
             <CheckCircleIcon size={36} color={colors.primary} />
           </View>
           <Text style={[styles.allSettledTitle, { color: colors.primaryDark }]}>
-            All Settled Up!
+            All settled up
           </Text>
           <Text style={[styles.allSettledSub, { color: colors.textMuted }]}>
             No outstanding balances between {isFriends ? 'friends' : 'families'}.
@@ -265,7 +265,7 @@ export function SettlementsScreen({ route, navigation }) {
             </View>
 
             <Button
-              title="Record Settlement"
+              title="Record Payment"
               size="sm"
               style={styles.settleBtn}
               onPress={() => handleSettle(settlement)}

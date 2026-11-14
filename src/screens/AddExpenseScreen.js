@@ -277,7 +277,7 @@ export function AddExpenseScreen({ route, navigation }) {
                     styles.toggleBtnActive,
                     {
                       borderColor: colors.primary,
-                      backgroundColor: isDark ? '#064E3B' : '#F0FDF4',
+                      backgroundColor: colors.primaryLight,
                     },
                   ],
                 ]}
@@ -293,7 +293,7 @@ export function AddExpenseScreen({ route, navigation }) {
                     ],
                   ]}
                 >
-                  Adult/Child Weight (Default)
+                  Adult/Child Weight
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -308,7 +308,7 @@ export function AddExpenseScreen({ route, navigation }) {
                     styles.toggleBtnActive,
                     {
                       borderColor: colors.primary,
-                      backgroundColor: isDark ? '#064E3B' : '#F0FDF4',
+                      backgroundColor: colors.primaryLight,
                     },
                   ],
                 ]}
@@ -324,7 +324,7 @@ export function AddExpenseScreen({ route, navigation }) {
                     ],
                   ]}
                 >
-                  Equal Per Family
+                  Equal per Family
                 </Text>
               </TouchableOpacity>
             </View>

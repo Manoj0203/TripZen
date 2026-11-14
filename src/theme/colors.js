@@ -24,27 +24,27 @@ export const lightColors = {
 };
 
 export const darkColors = {
-  primary: '#10B981',       // Emerald green
-  primaryDark: '#34D399',   // Brighter emerald for dark surfaces
-  primaryLight: '#064E3B',  // Rich dark emerald container
-  secondary: '#60A5FA',     // Blue accent for dark mode
-  secondaryLight: '#1E3A8A',// Dark blue container
-  background: '#0B0F19',    // Deep slate background
-  card: '#161F30',          // Rich dark card
-  surface: '#1E293B',       // Elevated surface
-  text: '#F1F5F9',          // Bright slate text
-  textMuted: '#94A3B8',     // Slate 400
-  border: '#243247',        // Refined dark border
-  danger: '#F87171',        // Red
-  dangerLight: '#451A1A',   // Dark red container
+  primary: '#10B981',       // Clean emerald
+  primaryDark: '#34D399',
+  primaryLight: '#052E16',  // Deep dark emerald
+  secondary: '#38BDF8',     // Sky accent
+  secondaryLight: '#0C4A6E',
+  background: '#09090B',    // True neutral deep black
+  card: '#141416',          // Clean neutral dark card (no blue tint)
+  surface: '#1F1F23',       // Elevated neutral dark surface
+  text: '#FAFAFA',          // Crisp neutral white
+  textMuted: '#A1A1AA',     // Neutral zinc gray
+  border: '#27272A',        // Neutral zinc dark border
+  danger: '#F87171',        // Soft red
+  dangerLight: '#450A0A',   // Deep neutral dark red
   warning: '#FBBF24',
-  warningLight: '#452A0A',
+  warningLight: '#451A03',
   success: '#34D399',
-  successLight: '#064E3B',
-  badgeBg: '#1E293B',
-  inputBg: '#111827',
-  headerBg: '#111827',
-  tabBarBg: '#111827',
+  successLight: '#052E16',
+  badgeBg: '#1F1F23',
+  inputBg: '#141416',
+  headerBg: '#09090B',
+  tabBarBg: '#09090B',
   isDark: true,
 };
 

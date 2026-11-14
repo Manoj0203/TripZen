@@ -408,16 +408,16 @@ export function ParticipantsScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Redesigned Participants Top Header Bar */}
+      {/* Clean Participants Header Bar */}
       <View style={[styles.topBar, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
         <View style={styles.topBarTitleContainer}>
           <Text style={[styles.pageTitle, { color: colors.text }]}>
-            {isFriends ? 'Friends List' : 'Trip Families'}
+            {isFriends ? 'Friends' : 'Families'}
           </Text>
           <Text style={[styles.pageSubtitle, { color: colors.textMuted }]}>
             {isFriends
-              ? 'Add friends to split trip expenses with'
-              : 'Add families and their members (Adult/Child)'}
+              ? 'People sharing costs on this trip'
+              : 'Family groups and split weights'}
           </Text>
         </View>
         <Button
@@ -447,8 +447,8 @@ export function ParticipantsScreen({ route, navigation }) {
             </Text>
             <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
               {isFriends
-                ? 'Tap "Add Friend" above to add your travel buddies.'
-                : 'Tap "Add Family" above to create family groups.'}
+                ? 'Add the friends traveling with you to split expenses.'
+                : 'Add families and members to start organizing splits.'}
             </Text>
           </View>
         }

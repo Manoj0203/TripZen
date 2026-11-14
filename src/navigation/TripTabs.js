@@ -12,8 +12,6 @@ import {
   ScaleIcon,
   SyncIcon,
   ChevronLeftIcon,
-  MoonIcon,
-  SunIcon,
 } from '../components/Icons';
 
 const Tab = createBottomTabNavigator();
@@ -21,7 +19,7 @@ const Tab = createBottomTabNavigator();
 export function TripTabs({ route, navigation }) {
   const { tripId, tripName, tripType = 'families' } = route.params;
   const isFriends = tripType === 'friends';
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <Tab.Navigator
@@ -71,25 +69,12 @@ export function TripTabs({ route, navigation }) {
         ),
         headerRight: () => (
           <View style={styles.rightActionsRow}>
-            {/* Theme Toggle Button */}
-            <TouchableOpacity
-              style={[styles.iconActionBtn, { backgroundColor: colors.surface }]}
-              onPress={toggleTheme}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              {isDark ? (
-                <SunIcon size={18} color="#FBBF24" />
-              ) : (
-                <MoonIcon size={18} color={colors.textMuted} />
-              )}
-            </TouchableOpacity>
-
-            {/* Sync / QR Button */}
+            {/* Sync / Backup Button */}
             <TouchableOpacity
               style={[styles.backupHeaderBtn, { backgroundColor: colors.surface }]}
               onPress={() => navigation.navigate('SyncBackup', { tripId, tripName })}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <SyncIcon size={14} color={colors.secondary} style={{ marginRight: 5 }} />
               <Text style={[styles.backupHeaderText, { color: colors.secondary }]}>
@@ -163,7 +148,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    maxWidth: 180,
+    maxWidth: 220,
     gap: 8,
   },
   tripTitleText: {
@@ -184,13 +169,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 14,
-    gap: 8,
-  },
-  iconActionBtn: {
-    padding: 7,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   backupHeaderBtn: {
     paddingHorizontal: 10,

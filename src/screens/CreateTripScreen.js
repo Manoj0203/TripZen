@@ -70,27 +70,27 @@ export function CreateTripScreen({ navigation }) {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={[styles.screenTitle, { color: colors.text }]}>Create a New Trip</Text>
+        <Text style={[styles.screenTitle, { color: colors.text }]}>New Trip</Text>
         <Text style={[styles.screenSubtitle, { color: colors.textMuted }]}>
-          Set up your trip and choose how participants will be organized.
+          Track expenses with friends or families offline.
         </Text>
 
         <Input
           label="Trip Name"
-          placeholder="e.g. Goa Vacation 2026, Ladakh Roadtrip"
+          placeholder="e.g. Goa Vacation, Ladakh Roadtrip"
           value={name}
           onChangeText={setName}
         />
 
         <Input
-          label="Description (Optional)"
-          placeholder="Notes, destination, hotel info..."
+          label="Notes (Optional)"
+          placeholder="Destination, hotel info, dates..."
           value={description}
           onChangeText={setDescription}
           multiline
         />
 
-        <Text style={[styles.sectionLabel, { color: colors.text }]}>Trip Participant Mode</Text>
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>Group Type</Text>
 
         {/* Option 1: Family Trip */}
         <TouchableOpacity
@@ -105,7 +105,7 @@ export function CreateTripScreen({ navigation }) {
                 styles.typeCardSelected,
                 {
                   borderColor: colors.primary,
-                  backgroundColor: isDark ? '#064E3B' : '#F0FDF4',
+                  backgroundColor: colors.primaryLight,
                 },
               ],
             ]}
@@ -125,7 +125,7 @@ export function CreateTripScreen({ navigation }) {
               <View style={styles.typeInfo}>
                 <Text style={[styles.typeTitle, { color: colors.text }]}>Family Trip</Text>
                 <Text style={[styles.typeDescription, { color: colors.textMuted }]}>
-                  Participants belong to families. Adults (1.0x) and Children (0.5x) have weighted splits.
+                  Split expenses across family units with adult (1.0x) and child (0.5x) weights.
                 </Text>
               </View>
               <View
@@ -155,7 +155,7 @@ export function CreateTripScreen({ navigation }) {
                 styles.typeCardSelected,
                 {
                   borderColor: colors.primary,
-                  backgroundColor: isDark ? '#064E3B' : '#F0FDF4',
+                  backgroundColor: colors.primaryLight,
                 },
               ],
             ]}
@@ -173,9 +173,9 @@ export function CreateTripScreen({ navigation }) {
                 />
               </View>
               <View style={styles.typeInfo}>
-                <Text style={[styles.typeTitle, { color: colors.text }]}>Group of Friends</Text>
+                <Text style={[styles.typeTitle, { color: colors.text }]}>Friends Trip</Text>
                 <Text style={[styles.typeDescription, { color: colors.textMuted }]}>
-                  Direct list of friends (bachelors, colleagues, roommates). No family grouping or adult/child labels.
+                  Split expenses equally among individual friends.
                 </Text>
               </View>
               <View

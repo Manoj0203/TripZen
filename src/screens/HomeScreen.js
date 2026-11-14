@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useAlert } from '../context/AlertContext';
 import { Card } from '../components/Card';
@@ -24,14 +25,11 @@ import {
   ArrowRightIcon,
   TripIcon,
   DownloadIcon,
-  ScaleIcon,
-  MoonIcon,
-  SunIcon,
 } from '../components/Icons';
 import { getFromClipboard } from '../utils/clipboard';
 
 export function HomeScreen({ navigation }) {
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors } = useTheme();
   const { showAlert } = useAlert();
 
   const [trips, setTrips] = useState([]);
@@ -235,7 +233,7 @@ export function HomeScreen({ navigation }) {
                   },
                 ]}
               >
-                {isFriends ? 'Friends Trip' : 'Family Trip'}
+                {isFriends ? 'Friends' : 'Families'}
               </Text>
             </View>
           </View>
@@ -297,36 +295,12 @@ export function HomeScreen({ navigation }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Modern Redesigned Header UI */}
+    <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Modern Clean Header */}
       <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
-        <View style={styles.brandRow}>
-          <View style={[styles.brandLogoCircle, { backgroundColor: colors.primaryLight }]}>
-            <ScaleIcon size={20} color={colors.primaryDark} strokeWidth={2.4} />
-          </View>
-          <View style={styles.headerTitleContainer}>
-            <Text style={[styles.title, { color: colors.text }]}>TripZen</Text>
-            <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-              Offline Group Expenses
-            </Text>
-          </View>
-        </View>
+        <Text style={[styles.title, { color: colors.text }]}>TripZen</Text>
 
         <View style={styles.headerActions}>
-          {/* Theme Switcher Button */}
-          <TouchableOpacity
-            style={[styles.themeToggleBtn, { backgroundColor: colors.surface }]}
-            onPress={toggleTheme}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            {isDark ? (
-              <SunIcon size={18} color="#FBBF24" />
-            ) : (
-              <MoonIcon size={18} color={colors.textMuted} />
-            )}
-          </TouchableOpacity>
-
           <Button
             title="Import"
             icon={<DownloadIcon size={14} color={colors.primary} />}
@@ -336,7 +310,7 @@ export function HomeScreen({ navigation }) {
             onPress={() => setImportModalVisible(true)}
           />
           <Button
-            title="New"
+            title="New Trip"
             icon={<PlusIcon size={14} color="#FFFFFF" />}
             size="sm"
             onPress={() => navigation.navigate('CreateTrip')}
@@ -346,10 +320,12 @@ export function HomeScreen({ navigation }) {
 
       {trips.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <TripIcon size={56} color={colors.textMuted} style={styles.emptyIcon} />
-          <Text style={[styles.emptyTitle, { color: colors.text }]}>No Trips Yet</Text>
+          <View style={[styles.emptyIconCircle, { backgroundColor: colors.surface }]}>
+            <TripIcon size={36} color={colors.textMuted} />
+          </View>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>No trips yet</Text>
           <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
-            Create your first trip with families or friends, or import an encrypted backup.
+            Create a trip with friends or family to track expenses and settle balances offline.
           </Text>
           <View style={styles.emptyButtonRow}>
             <Button
@@ -359,7 +335,7 @@ export function HomeScreen({ navigation }) {
               onPress={() => navigation.navigate('CreateTrip')}
             />
             <Button
-              title="Import Trip"
+              title="Import Backup"
               icon={<DownloadIcon size={14} color={colors.primary} />}
               variant="outline"
               style={styles.emptyButton}
@@ -521,7 +497,7 @@ export function HomeScreen({ navigation }) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -530,53 +506,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 48 : 20,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingTop: 0,
+    paddingBottom: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
   },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 1,
-    marginRight: 10,
-  },
-  brandLogoCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  headerTitleContainer: {
-    flexShrink: 1,
-  },
   title: {
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: -0.3,
-  },
-  subtitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 1,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     flexShrink: 0,
-    zIndex: 10,
-  },
-  themeToggleBtn: {
-    padding: 8,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   importHeaderBtn: {
     marginRight: 2,
@@ -648,8 +595,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 32,
   },
-  emptyIcon: {
-    marginBottom: 12,
+  emptyIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 20,
@@ -659,6 +611,7 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     fontSize: 14,
     textAlign: 'center',
+    lineHeight: 20,
     marginBottom: 24,
   },
   emptyButtonRow: {

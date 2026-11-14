@@ -106,7 +106,7 @@ export function CustomAlertModal({
       onBackdropPress={onCancel}
       onBackButtonPress={onCancel}
       backdropOpacity={0.65}
-      backdropColor={isDark ? '#000000' : '#0B0F19'}
+      backdropColor="#000000"
       animationIn="zoomIn"
       animationOut="zoomOut"
       animationInTiming={220}

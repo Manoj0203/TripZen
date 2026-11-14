@@ -251,7 +251,7 @@ export function SyncBackupModal({ route, navigation }) {
                   <QRCode
                     value={encryptedPayload.substring(0, 300)}
                     size={180}
-                    color="#0F172A"
+                    color="#000000"
                     backgroundColor="#FFFFFF"
                   />
                 </View>

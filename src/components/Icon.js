@@ -4,7 +4,7 @@ import Svg, { Path, Rect, Circle, Line, Polyline, G } from 'react-native-svg';
 export function Icon({
   name,
   size = 20,
-  color = '#1E293B',
+  color = '#18181B',
   strokeWidth = 2,
   style,
 }) {
